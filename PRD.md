@@ -88,6 +88,30 @@ deepdex/
 
 Cada fase se commitea por separado en `claude/deep-work-pokemon-app-v2240d`.
 
+## 5b. Fase 5 — Temas y coherencia (añadida 2026-09-07)
+
+Peticiones del usuario tras la v1: contar horas por tarea/tema con salida a fichero, e investigar mejoras de gamificación y UX.
+
+**Investigación**: se revisaron apps comparables (Focumon, FocusMon, Forest, Focus Plant, Time Farm) y análisis de mecánicas de hábito. Dos conclusiones aplicadas: los mecanismos de recuperación de racha triplican la retención del hábito frente a las rachas que se pierden enteras, y una mecánica bien elegida rinde más que muchas superpuestas.
+
+**Implementado:**
+
+| Qué | Cómo |
+|---|---|
+| Temas | Se crean desde Inicio (nombre + tipo Pokémon afín). Cada sesión se etiqueta con un tema o «sin tema». Solo las sesiones completadas suman horas al tema. |
+| Afinidad de tipo | 60% de probabilidad de que la eclosión salga del grupo del tipo del tema (dentro de la rareza sorteada). Conecta lo que estudias con lo que capturas. |
+| Historial | Registro de sesiones (fecha, duración, tema, completada/abortada), tope de 2000 entradas. Pantalla TEMAS con totales por tema, barras y últimas sesiones. |
+| Exportación | Botón que genera un Markdown con tabla de totales por tema e historial completo, vía diálogo de guardado del sistema. |
+| Escudos de racha | Cada 7 días seguidos ganas un escudo (máx. 2). Un día fallado consume un escudo en lugar de resetear la racha. Visible en Inicio y Entrenador. |
+| Tipos reales | Dataset de tipos de los 151 (tipado moderno), chips de colores oficiales en español. |
+| Ficha de Pokédex | Cada celda abre detalle: tipos, rareza, capturas, primera fecha, shiny; desde ahí se elige compañero. |
+| Compañero | Tu Pokémon favorito aparece junto al saludo de Inicio. |
+| Coherencia de eclosión | El huevo de la animación usa el color de su tier real. |
+| Sonido | Jingles chiptune (WebAudio, sin ficheros) al eclosionar, subir de nivel y ganar medalla. |
+| Hoy | Inicio muestra los minutos completados del día, para que la victoria diaria sea visible. |
+
+**Ideas investigadas y aplazadas** (candidatas a fase 6): caramelos por repetidos para evolucionar capturas (estilo Pokémon GO), sistema de pity que garantice un raro tras N huevos sin suerte, capítulos mensuales con cierre limpio (isla/región terminada cada mes), quest book diario (2-3 objetivos), sesiones de foco en compañía (multijugador), y estadísticas semanales por tema.
+
 ## 6. Fuera de alcance (por ahora)
 
 - Bloqueo a nivel de red/extensión de navegador (hosts es suficiente para el uso personal).
