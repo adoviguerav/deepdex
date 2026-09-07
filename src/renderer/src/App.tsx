@@ -3,6 +3,7 @@ import type { CompletionResult, GameData, SessionState } from '../../shared/type
 import CompletedScreen from './screens/CompletedScreen'
 import Home from './screens/Home'
 import SessionScreen from './screens/SessionScreen'
+import SettingsScreen from './screens/SettingsScreen'
 
 export type View = 'home' | 'pokedex' | 'trainer' | 'settings'
 
@@ -55,7 +56,7 @@ export default function App(): JSX.Element {
         {view === 'home' && <Home data={data} />}
         {view === 'pokedex' && <div className="placeholder">POKÉDEX — fase 3</div>}
         {view === 'trainer' && <div className="placeholder">ENTRENADOR — fase 4</div>}
-        {view === 'settings' && <div className="placeholder">AJUSTES — fase 2</div>}
+        {view === 'settings' && <SettingsScreen data={data} onDataChanged={setData} />}
       </main>
       <nav className="tabbar">
         {NAV.map((item) => (

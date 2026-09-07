@@ -1,5 +1,7 @@
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
+import { AppBlocker } from './appBlocker'
+import { HostsBlocker } from './hostsBlocker'
 import { registerIpc } from './ipc'
 import { SessionEngine } from './session'
 import { Store } from './store'
@@ -42,14 +44,23 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   store = new Store()
+  const appBlocker = new AppBlocker(() => engine.reportBlockedAttempt())
+  const hostsBlocker = new HostsBlocker()
   engine = new SessionEngine(store, {
-    // Blockers are wired in phase 2; for now sessions run without blocking.
-    engage: async () => {},
-    release: async () => {}
+    engage: async () => {
+      appBlocker.engage(store.data.settings.blocklistApps)
+      const ok = await hostsBlocker.engage(store.data.settings.blocklistDomains)
+      engine.setWebBlockActive(ok)
+    },
+    release: async () => {
+      appBlocker.release()
+      await hostsBlocker.release()
+    }
   })
   if (engine.recoverOrphanSession()) {
     console.warn('Found a session killed mid-run; counted as aborted.')
   }
+  void hostsBlocker.cleanupOrphan()
   registerIpc(store, engine, () => mainWindow)
   createWindow()
 

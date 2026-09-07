@@ -18,7 +18,8 @@ function idleState(): SessionState {
     startedAt: null,
     remainingSec: 0,
     blockedAttempts: 0,
-    eggTier: null
+    eggTier: null,
+    webBlockActive: false
   }
 }
 
@@ -65,7 +66,8 @@ export class SessionEngine extends EventEmitter {
       startedAt: Date.now(),
       remainingSec: minutes * 60,
       blockedAttempts: 0,
-      eggTier: eggTierForDuration(minutes)
+      eggTier: eggTierForDuration(minutes),
+      webBlockActive: false
     }
     this.store.setActiveSession({ startedAt: this.state.startedAt!, durationMin: minutes })
     void this.hooks.engage()
@@ -84,6 +86,12 @@ export class SessionEngine extends EventEmitter {
     this.state = idleState()
     this.emitUpdate()
     return this.getState()
+  }
+
+  setWebBlockActive(active: boolean): void {
+    if (!this.isRunning) return
+    this.state.webBlockActive = active
+    this.emitUpdate()
   }
 
   reportBlockedAttempt(): void {

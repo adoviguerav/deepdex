@@ -1,11 +1,17 @@
+import { useEffect, useState } from 'react'
 import type { SessionState } from '../../../shared/types'
 import Egg from '../components/Egg'
+
+const EMERGENCY_PHRASE = 'necesito salir de verdad'
+const EMERGENCY_WAIT_SEC = 30
 
 function formatTime(totalSec: number): string {
   const m = Math.floor(totalSec / 60)
   const s = totalSec % 60
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
+
+type EmergencyStep = 'closed' | 'phrase' | 'countdown'
 
 export default function SessionScreen({
   session,
@@ -14,13 +20,28 @@ export default function SessionScreen({
   session: SessionState
   onAborted: () => void
 }): JSX.Element {
+  const [step, setStep] = useState<EmergencyStep>('closed')
+  const [phrase, setPhrase] = useState('')
+  const [countdown, setCountdown] = useState(EMERGENCY_WAIT_SEC)
+
+  useEffect(() => {
+    if (step !== 'countdown') return
+    if (countdown <= 0) {
+      void window.deepdex.abortSession().then(onAborted)
+      return
+    }
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [step, countdown, onAborted])
+
+  const closeEmergency = (): void => {
+    setStep('closed')
+    setPhrase('')
+    setCountdown(EMERGENCY_WAIT_SEC)
+  }
+
   const progress =
     session.durationMin > 0 ? 1 - session.remainingSec / (session.durationMin * 60) : 0
-
-  const abort = (): void => {
-    // Phase 2 replaces this with the full emergency flow (phrase + 30s wait).
-    void window.deepdex.abortSession().then(onAborted)
-  }
 
   return (
     <div className="app session-screen">
@@ -35,14 +56,69 @@ export default function SessionScreen({
           <div className="egg-hint">El huevo se incuba con tu foco…</div>
         </div>
       )}
-      <div className="blocked-counter">
-        {session.blockedAttempts > 0
-          ? `INTENTOS BLOQUEADOS: ${session.blockedAttempts}`
-          : 'TODO EN CALMA'}
+      <div className="block-status">
+        <span>
+          {session.blockedAttempts > 0
+            ? `INTENTOS BLOQUEADOS: ${session.blockedAttempts}`
+            : 'TODO EN CALMA'}
+        </span>
+        <span className={session.webBlockActive ? 'web-block on' : 'web-block'}>
+          {session.webBlockActive ? '🛡 WEBS BLOQUEADAS' : '⚠ WEBS SIN BLOQUEAR'}
+        </span>
       </div>
-      <button className="emergency-btn" onClick={abort}>
+      <button className="emergency-btn" onClick={() => setStep('phrase')}>
         ⚠ EMERGENCIA
       </button>
+
+      {step !== 'closed' && (
+        <div className="modal-backdrop">
+          <div className="modal panel">
+            {step === 'phrase' && (
+              <>
+                <div className="panel-title">SALIDA DE EMERGENCIA</div>
+                <p className="modal-text">
+                  Abortar pierde el huevo y toda la XP de esta sesión. Si de verdad es una
+                  emergencia, escribe:
+                </p>
+                <p className="modal-phrase">«{EMERGENCY_PHRASE}»</p>
+                <input
+                  className="custom-duration"
+                  type="text"
+                  value={phrase}
+                  autoFocus
+                  onChange={(e) => setPhrase(e.target.value)}
+                  placeholder="escribe la frase"
+                />
+                <div className="modal-actions">
+                  <button className="preset" onClick={closeEmergency}>
+                    SEGUIR EN FOCO
+                  </button>
+                  <button
+                    className="preset danger"
+                    disabled={phrase.trim().toLowerCase() !== EMERGENCY_PHRASE}
+                    onClick={() => setStep('countdown')}
+                  >
+                    CONTINUAR
+                  </button>
+                </div>
+              </>
+            )}
+            {step === 'countdown' && (
+              <>
+                <div className="panel-title">ÚLTIMA OPORTUNIDAD</div>
+                <p className="modal-text">
+                  La sesión se abortará en {countdown} segundos. Aún puedes arrepentirte y
+                  conservar tu huevo.
+                </p>
+                <div className="countdown-number">{countdown}</div>
+                <button className="preset" onClick={closeEmergency}>
+                  ✋ CANCELAR Y SEGUIR
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

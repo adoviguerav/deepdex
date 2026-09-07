@@ -11,6 +11,8 @@ export interface SessionState {
   remainingSec: number
   blockedAttempts: number
   eggTier: EggTier | null
+  /** True while the /etc/hosts web block is in place for this session. */
+  webBlockActive: boolean
 }
 
 export interface CaughtRecord {
