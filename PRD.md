@@ -3,7 +3,7 @@
 Fecha: 2026-09-07
 Estado: aprobado en conversación; en ejecución por fases.
 Usuario: Adolfo, uso personal en su Mac.
-Nota de repositorio: DeepDex vive en `deepdex/` y es independiente de CalVoice (el PRD raíz de este repo pertenece al proyecto de nutrición y no se toca).
+Nota de repositorio: DeepDex vive en su propio repositorio (originalmente se desarrolló en la carpeta `deepdex/` del repo CalVoice; el historial de commits se conservó al trasladarlo).
 
 ## 1. Problema y resultado esperado
 

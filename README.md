@@ -12,7 +12,6 @@ El diseño completo está en [PRD.md](PRD.md).
 ## Desarrollo
 
 ```bash
-cd deepdex
 npm install
 npm run dev        # arranca Electron con recarga en caliente
 npm run typecheck  # comprobación de tipos (main + renderer)
