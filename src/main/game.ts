@@ -4,7 +4,8 @@ import {
   nameOf,
   rarityOf,
   SHINY_ODDS,
-  TOTAL_SPECIES
+  TOTAL_SPECIES,
+  typesOf
 } from '../shared/pokedex'
 import type {
   CompletionResult,
@@ -12,19 +13,16 @@ import type {
   GameData,
   HatchResult,
   Rarity,
-  StreakState
+  StreakState,
+  Topic
 } from '../shared/types'
-import { levelForXp } from '../shared/types'
-
-function localDay(date: Date): string {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
+import { levelForXp, localDay } from '../shared/types'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const MAX_SHIELDS = 2
+const MAX_LOG_ENTRIES = 2000
+/** Chance that a hatch is drawn from the topic's type pool (when non-empty). */
+const TYPE_BIAS = 0.6
 
 function updateStreak(streak: StreakState, now: Date): void {
   const today = localDay(now)
@@ -69,9 +67,18 @@ for (let id = 1; id <= TOTAL_SPECIES; id++) {
   SPECIES_BY_RARITY[rarityOf(id)].push(id)
 }
 
-function hatch(data: GameData, tier: EggTier, random: () => number): HatchResult {
+function hatch(
+  data: GameData,
+  tier: EggTier,
+  topic: Topic | null,
+  random: () => number
+): HatchResult {
   const rarity = rollRarity(tier, random)
-  const pool = SPECIES_BY_RARITY[rarity]
+  let pool = SPECIES_BY_RARITY[rarity]
+  if (topic && random() < TYPE_BIAS) {
+    const typed = pool.filter((id) => typesOf(id).includes(topic.type))
+    if (typed.length > 0) pool = typed
+  }
   const pokemonId = pool[Math.floor(random() * pool.length)]
   const shinyOdds = data.streak.current >= 7 ? SHINY_ODDS * 2 : SHINY_ODDS
   const shiny = random() < shinyOdds
@@ -102,25 +109,47 @@ function refreshBadges(data: GameData): string[] {
   return newBadges
 }
 
+function appendLog(data: GameData, entry: GameData['sessionLog'][number]): void {
+  data.sessionLog.push(entry)
+  if (data.sessionLog.length > MAX_LOG_ENTRIES) {
+    data.sessionLog.splice(0, data.sessionLog.length - MAX_LOG_ENTRIES)
+  }
+}
+
+export interface CompletedSession {
+  durationMin: number
+  eggTier: EggTier
+  topicId: string | null
+  startedAt: number
+}
+
 /** Applies the rewards of a completed session to the game data (mutates it). */
 export function grantCompletion(
   data: GameData,
-  durationMin: number,
-  eggTier: EggTier,
+  session: CompletedSession,
   now: Date = new Date(),
   random: () => number = Math.random
 ): CompletionResult {
+  const topic = data.topics.find((t) => t.id === session.topicId) ?? null
   const levelBefore = levelForXp(data.xp)
-  data.xp += durationMin
-  data.totalFocusMin += durationMin
+  data.xp += session.durationMin
+  data.totalFocusMin += session.durationMin
   data.sessionsCompleted += 1
+  if (topic) topic.totalMin += session.durationMin
+  appendLog(data, {
+    startedAt: session.startedAt,
+    durationMin: session.durationMin,
+    topicId: topic?.id ?? null,
+    completed: true
+  })
   updateStreak(data.streak, now)
-  const hatchResult = hatch(data, eggTier, random)
+  const hatchResult = hatch(data, session.eggTier, topic, random)
   const newBadges = refreshBadges(data)
   const levelAfter = levelForXp(data.xp)
   return {
-    xpGained: durationMin,
-    eggTier,
+    xpGained: session.durationMin,
+    eggTier: session.eggTier,
+    topicName: topic?.name ?? null,
     levelBefore,
     levelAfter,
     newBadges,
@@ -129,6 +158,17 @@ export function grantCompletion(
   }
 }
 
-export function recordAbort(data: GameData): void {
+export function recordAbort(
+  data: GameData,
+  session: { startedAt: number; elapsedMin: number; topicId: string | null } | null = null
+): void {
   data.sessionsAborted += 1
+  if (session) {
+    appendLog(data, {
+      startedAt: session.startedAt,
+      durationMin: session.elapsedMin,
+      topicId: session.topicId,
+      completed: false
+    })
+  }
 }

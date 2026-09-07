@@ -1,3 +1,5 @@
+import type { PokeType } from './pokedex'
+
 export type SessionPhase = 'idle' | 'running'
 
 export type EggTier = 'common' | 'rare' | 'superrare'
@@ -13,6 +15,26 @@ export interface SessionState {
   eggTier: EggTier | null
   /** True while the /etc/hosts web block is in place for this session. */
   webBlockActive: boolean
+  topicId: string | null
+  topicName: string | null
+}
+
+/** A task/subject the user dedicates focus hours to. */
+export interface Topic {
+  id: string
+  name: string
+  /** Pokémon type affinity: hatches during this topic lean toward it. */
+  type: PokeType
+  totalMin: number
+  createdAt: number
+}
+
+export interface SessionLogEntry {
+  startedAt: number
+  /** Planned minutes for completed sessions; elapsed minutes for aborted ones. */
+  durationMin: number
+  topicId: string | null
+  completed: boolean
 }
 
 export interface CaughtRecord {
@@ -50,6 +72,8 @@ export interface GameData {
   badges: string[]
   /** Favourite caught Pokémon, shown on the home screen. */
   companionId: number | null
+  topics: Topic[]
+  sessionLog: SessionLogEntry[]
   settings: Settings
 }
 
@@ -64,11 +88,19 @@ export interface HatchResult {
 export interface CompletionResult {
   xpGained: number
   eggTier: EggTier
+  topicName: string | null
   levelBefore: number
   levelAfter: number
   newBadges: string[]
   hatch: HatchResult | null
   data: GameData
+}
+
+export function localDay(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
 /** XP required to reach a given trainer level (cumulative). Level 1 = 0 XP. */

@@ -19,7 +19,9 @@ function idleState(): SessionState {
     remainingSec: 0,
     blockedAttempts: 0,
     eggTier: null,
-    webBlockActive: false
+    webBlockActive: false,
+    topicId: null,
+    topicName: null
   }
 }
 
@@ -52,14 +54,22 @@ export class SessionEngine extends EventEmitter {
   recoverOrphanSession(): boolean {
     const orphan = this.store.activeSession
     if (!orphan) return false
-    recordAbort(this.store.data)
+    recordAbort(this.store.data, {
+      startedAt: orphan.startedAt,
+      elapsedMin: Math.min(
+        orphan.durationMin,
+        Math.round((Date.now() - orphan.startedAt) / 60000)
+      ),
+      topicId: orphan.topicId
+    })
     this.store.setActiveSession(null)
     return true
   }
 
-  start(durationMin: number): SessionState {
+  start(durationMin: number, topicId: string | null = null): SessionState {
     if (this.isRunning) return this.getState()
     const minutes = Math.max(1, Math.min(240, Math.round(durationMin)))
+    const topic = this.store.data.topics.find((t) => t.id === topicId) ?? null
     this.state = {
       phase: 'running',
       durationMin: minutes,
@@ -67,9 +77,15 @@ export class SessionEngine extends EventEmitter {
       remainingSec: minutes * 60,
       blockedAttempts: 0,
       eggTier: eggTierForDuration(minutes),
-      webBlockActive: false
+      webBlockActive: false,
+      topicId: topic?.id ?? null,
+      topicName: topic?.name ?? null
     }
-    this.store.setActiveSession({ startedAt: this.state.startedAt!, durationMin: minutes })
+    this.store.setActiveSession({
+      startedAt: this.state.startedAt!,
+      durationMin: minutes,
+      topicId: topic?.id ?? null
+    })
     void this.hooks.engage()
     this.timer = setInterval(() => this.tick(), 1000)
     this.emitUpdate()
@@ -79,7 +95,7 @@ export class SessionEngine extends EventEmitter {
   abort(): SessionState {
     if (!this.isRunning) return this.getState()
     this.stopTimer()
-    recordAbort(this.store.data)
+    recordAbort(this.store.data, this.elapsedInfo())
     this.store.setActiveSession(null)
     this.store.save()
     void this.hooks.release()
@@ -104,7 +120,7 @@ export class SessionEngine extends EventEmitter {
   async shutdown(): Promise<void> {
     if (this.isRunning) {
       this.stopTimer()
-      recordAbort(this.store.data)
+      recordAbort(this.store.data, this.elapsedInfo())
       this.store.setActiveSession(null)
       this.store.save()
       await this.hooks.release()
@@ -122,10 +138,27 @@ export class SessionEngine extends EventEmitter {
     }
   }
 
+  private elapsedInfo(): { startedAt: number; elapsedMin: number; topicId: string | null } {
+    const startedAt = this.state.startedAt ?? Date.now()
+    return {
+      startedAt,
+      elapsedMin: Math.min(
+        this.state.durationMin,
+        Math.round((Date.now() - startedAt) / 60000)
+      ),
+      topicId: this.state.topicId
+    }
+  }
+
   private complete(): void {
     this.stopTimer()
-    const { durationMin, eggTier } = this.state
-    const result: CompletionResult = grantCompletion(this.store.data, durationMin, eggTier!)
+    const { durationMin, eggTier, topicId, startedAt } = this.state
+    const result: CompletionResult = grantCompletion(this.store.data, {
+      durationMin,
+      eggTier: eggTier!,
+      topicId,
+      startedAt: startedAt ?? Date.now()
+    })
     this.store.setActiveSession(null)
     this.store.save()
     void this.hooks.release()

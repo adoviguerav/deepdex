@@ -45,7 +45,9 @@ export default function SessionScreen({
 
   return (
     <div className="app session-screen">
-      <div className="session-top">MODO FOCO</div>
+      <div className="session-top">
+        MODO FOCO{session.topicName ? ` · ${session.topicName.toUpperCase()}` : ''}
+      </div>
       <div className="timer">{formatTime(session.remainingSec)}</div>
       <div className="progress-track">
         <div className="progress-fill" style={{ width: `${Math.round(progress * 100)}%` }} />

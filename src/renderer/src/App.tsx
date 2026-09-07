@@ -5,14 +5,16 @@ import Home from './screens/Home'
 import PokedexScreen from './screens/PokedexScreen'
 import SessionScreen from './screens/SessionScreen'
 import SettingsScreen from './screens/SettingsScreen'
+import TopicsScreen from './screens/TopicsScreen'
 import TrainerScreen from './screens/TrainerScreen'
 
-export type View = 'home' | 'pokedex' | 'trainer' | 'settings'
+export type View = 'home' | 'topics' | 'pokedex' | 'trainer' | 'settings'
 
 const NAV: { view: View; label: string }[] = [
   { view: 'home', label: 'INICIO' },
+  { view: 'topics', label: 'TEMAS' },
   { view: 'pokedex', label: 'POKÉDEX' },
-  { view: 'trainer', label: 'ENTRENADOR' },
+  { view: 'trainer', label: 'ENTRENA.' },
   { view: 'settings', label: 'AJUSTES' }
 ]
 
@@ -55,7 +57,8 @@ export default function App(): JSX.Element {
   return (
     <div className="app">
       <main className="app-content">
-        {view === 'home' && <Home data={data} />}
+        {view === 'home' && <Home data={data} onDataChanged={setData} />}
+        {view === 'topics' && <TopicsScreen data={data} onDataChanged={setData} />}
         {view === 'pokedex' && <PokedexScreen data={data} onDataChanged={setData} />}
         {view === 'trainer' && <TrainerScreen data={data} />}
         {view === 'settings' && <SettingsScreen data={data} onDataChanged={setData} />}

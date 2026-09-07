@@ -26,6 +26,8 @@ export function defaultData(): GameData {
     caught: {},
     badges: [],
     companionId: null,
+    topics: [],
+    sessionLog: [],
     settings: {
       blocklistApps: [...DEFAULT_APPS],
       blocklistDomains: [...DEFAULT_DOMAINS],
@@ -40,7 +42,7 @@ export function defaultData(): GameData {
  */
 export interface PersistedState {
   data: GameData
-  activeSession: { startedAt: number; durationMin: number } | null
+  activeSession: { startedAt: number; durationMin: number; topicId: string | null } | null
 }
 
 function dataPath(): string {
