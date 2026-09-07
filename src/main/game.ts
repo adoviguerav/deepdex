@@ -1,4 +1,19 @@
-import type { CompletionResult, EggTier, GameData, StreakState } from '../shared/types'
+import {
+  BADGES,
+  EGG_ODDS,
+  nameOf,
+  rarityOf,
+  SHINY_ODDS,
+  TOTAL_SPECIES
+} from '../shared/pokedex'
+import type {
+  CompletionResult,
+  EggTier,
+  GameData,
+  HatchResult,
+  Rarity,
+  StreakState
+} from '../shared/types'
 import { levelForXp } from '../shared/types'
 
 function localDay(date: Date): string {
@@ -17,29 +32,83 @@ function updateStreak(streak: StreakState, now: Date): void {
   streak.lastDay = today
 }
 
-/**
- * Applies the rewards of a completed session to the game data (mutates it).
- * Hatching and badges land in phase 3; for now a session grants XP, hours
- * and streak progress.
- */
+const RARITY_ORDER: Rarity[] = ['common', 'uncommon', 'rare', 'legendary']
+
+function rollRarity(tier: EggTier, random: () => number): Rarity {
+  const odds = EGG_ODDS[tier]
+  let roll = random()
+  for (let i = 0; i < odds.length; i++) {
+    if (roll < odds[i]) return RARITY_ORDER[i]
+    roll -= odds[i]
+  }
+  return 'common'
+}
+
+const SPECIES_BY_RARITY: Record<Rarity, number[]> = {
+  common: [],
+  uncommon: [],
+  rare: [],
+  legendary: []
+}
+for (let id = 1; id <= TOTAL_SPECIES; id++) {
+  SPECIES_BY_RARITY[rarityOf(id)].push(id)
+}
+
+function hatch(data: GameData, tier: EggTier, random: () => number): HatchResult {
+  const rarity = rollRarity(tier, random)
+  const pool = SPECIES_BY_RARITY[rarity]
+  const pokemonId = pool[Math.floor(random() * pool.length)]
+  const shinyOdds = data.streak.current >= 7 ? SHINY_ODDS * 2 : SHINY_ODDS
+  const shiny = random() < shinyOdds
+  const existing = data.caught[pokemonId]
+  const isNew = !existing
+  data.caught[pokemonId] = {
+    count: (existing?.count ?? 0) + 1,
+    shiny: (existing?.shiny ?? false) || shiny,
+    firstCaughtAt: existing?.firstCaughtAt ?? Date.now()
+  }
+  return { pokemonId, name: nameOf(pokemonId), rarity, shiny, isNew }
+}
+
+function refreshBadges(data: GameData): string[] {
+  const stats = {
+    totalFocusMin: data.totalFocusMin,
+    sessionsCompleted: data.sessionsCompleted,
+    bestStreak: data.streak.best,
+    speciesCount: Object.keys(data.caught).length
+  }
+  const newBadges: string[] = []
+  for (const badge of BADGES) {
+    if (!data.badges.includes(badge.id) && badge.earned(stats)) {
+      data.badges.push(badge.id)
+      newBadges.push(badge.id)
+    }
+  }
+  return newBadges
+}
+
+/** Applies the rewards of a completed session to the game data (mutates it). */
 export function grantCompletion(
   data: GameData,
   durationMin: number,
-  _eggTier: EggTier,
-  now: Date = new Date()
+  eggTier: EggTier,
+  now: Date = new Date(),
+  random: () => number = Math.random
 ): CompletionResult {
   const levelBefore = levelForXp(data.xp)
   data.xp += durationMin
   data.totalFocusMin += durationMin
   data.sessionsCompleted += 1
   updateStreak(data.streak, now)
+  const hatchResult = hatch(data, eggTier, random)
+  const newBadges = refreshBadges(data)
   const levelAfter = levelForXp(data.xp)
   return {
     xpGained: durationMin,
     levelBefore,
     levelAfter,
-    newBadges: [],
-    hatch: null,
+    newBadges,
+    hatch: hatchResult,
     data
   }
 }

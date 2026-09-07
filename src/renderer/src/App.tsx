@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { CompletionResult, GameData, SessionState } from '../../shared/types'
 import CompletedScreen from './screens/CompletedScreen'
 import Home from './screens/Home'
+import PokedexScreen from './screens/PokedexScreen'
 import SessionScreen from './screens/SessionScreen'
 import SettingsScreen from './screens/SettingsScreen'
 
@@ -54,7 +55,7 @@ export default function App(): JSX.Element {
     <div className="app">
       <main className="app-content">
         {view === 'home' && <Home data={data} />}
-        {view === 'pokedex' && <div className="placeholder">POKÉDEX — fase 3</div>}
+        {view === 'pokedex' && <PokedexScreen data={data} />}
         {view === 'trainer' && <div className="placeholder">ENTRENADOR — fase 4</div>}
         {view === 'settings' && <SettingsScreen data={data} onDataChanged={setData} />}
       </main>
