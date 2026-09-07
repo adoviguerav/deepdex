@@ -5,6 +5,7 @@ import { HostsBlocker } from './hostsBlocker'
 import { registerIpc } from './ipc'
 import { SessionEngine } from './session'
 import { Store } from './store'
+import { createTray } from './tray'
 
 let mainWindow: BrowserWindow | null = null
 let store: Store
@@ -63,6 +64,18 @@ app.whenReady().then(() => {
   void hostsBlocker.cleanupOrphan()
   registerIpc(store, engine, () => mainWindow)
   createWindow()
+  createTray(
+    engine,
+    () => {
+      if (mainWindow) {
+        mainWindow.show()
+        mainWindow.focus()
+      } else {
+        createWindow()
+      }
+    },
+    () => app.quit()
+  )
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

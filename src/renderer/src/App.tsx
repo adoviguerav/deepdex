@@ -5,6 +5,7 @@ import Home from './screens/Home'
 import PokedexScreen from './screens/PokedexScreen'
 import SessionScreen from './screens/SessionScreen'
 import SettingsScreen from './screens/SettingsScreen'
+import TrainerScreen from './screens/TrainerScreen'
 
 export type View = 'home' | 'pokedex' | 'trainer' | 'settings'
 
@@ -56,7 +57,7 @@ export default function App(): JSX.Element {
       <main className="app-content">
         {view === 'home' && <Home data={data} />}
         {view === 'pokedex' && <PokedexScreen data={data} />}
-        {view === 'trainer' && <div className="placeholder">ENTRENADOR — fase 4</div>}
+        {view === 'trainer' && <TrainerScreen data={data} />}
         {view === 'settings' && <SettingsScreen data={data} onDataChanged={setData} />}
       </main>
       <nav className="tabbar">

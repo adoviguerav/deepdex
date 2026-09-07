@@ -535,6 +535,80 @@ input {
   padding: 8px;
 }
 
+/* ---- trainer ---- */
+.trainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.xp-track {
+  width: 100%;
+  border-color: var(--ink);
+  background: var(--cream);
+  margin-bottom: 10px;
+}
+
+.xp-track .progress-fill {
+  background: var(--gb-light);
+}
+
+.xp-numbers {
+  font-size: 0.6rem;
+  color: var(--gb-dark);
+}
+
+.stat-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+}
+
+.stat-row span:last-child {
+  color: var(--gb-dark);
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.badge {
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+  opacity: 0.35;
+  background: var(--cream);
+}
+
+.badge.earned {
+  opacity: 1;
+  background: #f5e3b8;
+}
+
+.badge-emoji {
+  font-size: 1.4rem;
+  margin-bottom: 6px;
+}
+
+.badge-name {
+  font-size: 0.55rem;
+  margin-bottom: 4px;
+}
+
+.badge-desc {
+  font-size: 0.45rem;
+  color: var(--gb-dark);
+  line-height: 1.6;
+}
+
 /* ---- egg ---- */
 .egg.wobble {
   animation: wobble 2.4s ease-in-out infinite;

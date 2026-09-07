@@ -19,8 +19,12 @@ async function adminShell(cmd: string): Promise<void> {
   ])
 }
 
-function stripAndFlushCmd(): string {
-  return `/usr/bin/sed -i '' '/${START}/,/${END}/d' ${HOSTS}; /usr/bin/dscacheutil -flushcache; /usr/bin/killall -HUP mDNSResponder || true`
+function stripCmd(): string {
+  return `/usr/bin/sed -i '' '/${START}/,/${END}/d' ${HOSTS}`
+}
+
+function flushCmd(): string {
+  return `/usr/bin/dscacheutil -flushcache; /usr/bin/killall -HUP mDNSResponder || true`
 }
 
 function blockLines(domains: string[]): string {
@@ -52,7 +56,7 @@ export class HostsBlocker {
     const tmpFile = join(app.getPath('temp'), 'deepdex-hosts-block.txt')
     writeFileSync(tmpFile, blockLines(domains), 'utf-8')
     try {
-      await adminShell(`${stripAndFlushCmd()}; /bin/cat '${tmpFile}' >> ${HOSTS}`)
+      await adminShell(`${stripCmd()}; /bin/cat '${tmpFile}' >> ${HOSTS}; ${flushCmd()}`)
       this.active = true
       return true
     } catch (err) {
@@ -66,7 +70,7 @@ export class HostsBlocker {
     if (process.platform !== 'darwin') return
     if (!this.active && !this.hasOrphanBlock()) return
     try {
-      await adminShell(stripAndFlushCmd())
+      await adminShell(`${stripCmd()}; ${flushCmd()}`)
       this.active = false
     } catch (err) {
       console.error('Hosts release failed (will be cleaned on next launch):', err)
