@@ -56,7 +56,7 @@ export default function App(): JSX.Element {
     <div className="app">
       <main className="app-content">
         {view === 'home' && <Home data={data} />}
-        {view === 'pokedex' && <PokedexScreen data={data} />}
+        {view === 'pokedex' && <PokedexScreen data={data} onDataChanged={setData} />}
         {view === 'trainer' && <TrainerScreen data={data} />}
         {view === 'settings' && <SettingsScreen data={data} onDataChanged={setData} />}
       </main>

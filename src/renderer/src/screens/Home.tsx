@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import type { GameData } from '../../../shared/types'
 import { eggTierForDuration, levelForXp, xpForLevel } from '../../../shared/types'
+import { nameOf } from '../../../shared/pokedex'
 import Egg from '../components/Egg'
+import Sprite from '../components/Sprite'
 
 const PRESETS = [25, 50, 90]
 
@@ -35,15 +37,32 @@ export default function Home({ data }: { data: GameData }): JSX.Element {
   return (
     <div className="home">
       <header className="home-header">
-        <div className="trainer-line">
-          ENTRENADOR NV. {level}
-          <span className="xp-detail">
-            {data.xp}/{nextXp} XP
-          </span>
-        </div>
-        <div className="stats-line">
-          <span>⏱ {hours}h {minutes}m</span>
-          <span>🔥 RACHA {data.streak.current}</span>
+        <div className="header-main">
+          {data.companionId && data.caught[data.companionId] && (
+            <div className="companion" title={nameOf(data.companionId)}>
+              <Sprite
+                id={data.companionId}
+                shiny={data.caught[data.companionId].shiny}
+                size={56}
+                alt={nameOf(data.companionId)}
+              />
+            </div>
+          )}
+          <div className="header-text">
+            <div className="trainer-line">
+              ENTRENADOR NV. {level}
+              <span className="xp-detail">
+                {data.xp}/{nextXp} XP
+              </span>
+            </div>
+            <div className="stats-line">
+              <span>⏱ {hours}h {minutes}m</span>
+              <span>
+                🔥 RACHA {data.streak.current}
+                {data.streak.shields > 0 && ` 🛡×${data.streak.shields}`}
+              </span>
+            </div>
+          </div>
         </div>
       </header>
 

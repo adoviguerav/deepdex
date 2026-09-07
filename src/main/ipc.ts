@@ -8,6 +8,12 @@ export function registerIpc(store: Store, engine: SessionEngine, getWindow: () =
   ipcMain.handle('session:abort', () => engine.abort())
   ipcMain.handle('session:get', () => engine.getState())
   ipcMain.handle('data:get', () => store.data)
+  ipcMain.handle('companion:set', (_event, pokemonId: number | null) => {
+    store.data.companionId =
+      pokemonId !== null && store.data.caught[pokemonId] ? pokemonId : null
+    store.save()
+    return store.data
+  })
   ipcMain.handle('settings:update', (_event, partial: Partial<Settings>) => {
     const settings = store.data.settings
     if (Array.isArray(partial.blocklistApps)) {

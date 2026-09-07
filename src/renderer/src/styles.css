@@ -535,6 +535,71 @@ input {
   padding: 8px;
 }
 
+/* ---- header companion ---- */
+.header-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.companion {
+  flex-shrink: 0;
+}
+
+.header-text {
+  flex: 1;
+  line-height: 1.8;
+}
+
+/* ---- type chips & dex detail ---- */
+.type-chip {
+  display: inline-block;
+  padding: 4px 8px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.5rem;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.dex-cell {
+  font-family: inherit;
+}
+
+.dex-companion {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: 0.6rem;
+  color: var(--red);
+}
+
+.dex-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.dex-detail-sprite {
+  padding: 8px;
+}
+
+.dex-detail-types {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.dex-detail-info {
+  font-size: 0.6rem;
+  line-height: 2;
+  text-align: center;
+  color: var(--gb-dark);
+}
+
 /* ---- trainer ---- */
 .trainer {
   display: flex;

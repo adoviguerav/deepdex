@@ -22,9 +22,10 @@ export function defaultData(): GameData {
     totalFocusMin: 0,
     sessionsCompleted: 0,
     sessionsAborted: 0,
-    streak: { current: 0, best: 0, lastDay: null },
+    streak: { current: 0, best: 0, lastDay: null, shields: 0 },
     caught: {},
     badges: [],
+    companionId: null,
     settings: {
       blocklistApps: [...DEFAULT_APPS],
       blocklistDomains: [...DEFAULT_DOMAINS],

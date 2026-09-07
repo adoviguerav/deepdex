@@ -46,6 +46,87 @@ const UNCOMMON = new Set([
   138, 140, 147
 ])
 
+export type PokeType =
+  | 'Normal' | 'Fire' | 'Water' | 'Grass' | 'Electric' | 'Ice' | 'Fighting'
+  | 'Poison' | 'Ground' | 'Flying' | 'Psychic' | 'Bug' | 'Rock' | 'Ghost'
+  | 'Dragon' | 'Fairy' | 'Steel'
+
+/** Types per species, index 0 = #1. Modern typing (Clefairy is Fairy, Magnemite Electric/Steel). */
+const POKEMON_TYPES: string[] = [
+  'Grass/Poison', 'Grass/Poison', 'Grass/Poison', 'Fire', 'Fire', 'Fire/Flying',
+  'Water', 'Water', 'Water', 'Bug', 'Bug', 'Bug/Flying',
+  'Bug/Poison', 'Bug/Poison', 'Bug/Poison', 'Normal/Flying', 'Normal/Flying', 'Normal/Flying',
+  'Normal', 'Normal', 'Normal/Flying', 'Normal/Flying', 'Poison', 'Poison',
+  'Electric', 'Electric', 'Ground', 'Ground', 'Poison', 'Poison',
+  'Poison/Ground', 'Poison', 'Poison', 'Poison/Ground', 'Fairy', 'Fairy',
+  'Fire', 'Fire', 'Normal/Fairy', 'Normal/Fairy', 'Poison/Flying', 'Poison/Flying',
+  'Grass/Poison', 'Grass/Poison', 'Grass/Poison', 'Bug/Grass', 'Bug/Grass', 'Bug/Poison',
+  'Bug/Poison', 'Ground', 'Ground', 'Normal', 'Normal', 'Water',
+  'Water', 'Fighting', 'Fighting', 'Fire', 'Fire', 'Water',
+  'Water', 'Water/Fighting', 'Psychic', 'Psychic', 'Psychic', 'Fighting',
+  'Fighting', 'Fighting', 'Grass/Poison', 'Grass/Poison', 'Grass/Poison', 'Water/Poison',
+  'Water/Poison', 'Rock/Ground', 'Rock/Ground', 'Rock/Ground', 'Fire', 'Fire',
+  'Water/Psychic', 'Water/Psychic', 'Electric/Steel', 'Electric/Steel', 'Normal/Flying', 'Normal/Flying',
+  'Normal/Flying', 'Water', 'Water/Ice', 'Poison', 'Poison', 'Water',
+  'Water/Ice', 'Ghost/Poison', 'Ghost/Poison', 'Ghost/Poison', 'Rock/Ground', 'Psychic',
+  'Psychic', 'Water', 'Water', 'Electric', 'Electric', 'Grass/Psychic',
+  'Grass/Psychic', 'Ground', 'Ground', 'Fighting', 'Fighting', 'Normal',
+  'Poison', 'Poison', 'Ground/Rock', 'Ground/Rock', 'Normal', 'Grass',
+  'Normal', 'Water', 'Water', 'Water', 'Water', 'Water',
+  'Water/Psychic', 'Psychic/Fairy', 'Bug/Flying', 'Ice/Psychic', 'Electric', 'Fire',
+  'Bug', 'Normal', 'Water', 'Water/Flying', 'Water/Ice', 'Normal',
+  'Normal', 'Water', 'Electric', 'Fire', 'Normal', 'Rock/Water',
+  'Rock/Water', 'Rock/Water', 'Rock/Water', 'Rock/Flying', 'Normal', 'Ice/Flying',
+  'Electric/Flying', 'Fire/Flying', 'Dragon', 'Dragon', 'Dragon/Flying', 'Psychic', 'Psychic'
+]
+
+export function typesOf(id: number): PokeType[] {
+  return (POKEMON_TYPES[id - 1] ?? 'Normal').split('/') as PokeType[]
+}
+
+export const TYPE_LABELS_ES: Record<PokeType, string> = {
+  Normal: 'Normal',
+  Fire: 'Fuego',
+  Water: 'Agua',
+  Grass: 'Planta',
+  Electric: 'Eléctrico',
+  Ice: 'Hielo',
+  Fighting: 'Lucha',
+  Poison: 'Veneno',
+  Ground: 'Tierra',
+  Flying: 'Volador',
+  Psychic: 'Psíquico',
+  Bug: 'Bicho',
+  Rock: 'Roca',
+  Ghost: 'Fantasma',
+  Dragon: 'Dragón',
+  Fairy: 'Hada',
+  Steel: 'Acero'
+}
+
+export const TYPE_COLORS: Record<PokeType, string> = {
+  Normal: '#a8a878',
+  Fire: '#f08030',
+  Water: '#6890f0',
+  Grass: '#78c850',
+  Electric: '#f8d030',
+  Ice: '#98d8d8',
+  Fighting: '#c03028',
+  Poison: '#a040a0',
+  Ground: '#e0c068',
+  Flying: '#a890f0',
+  Psychic: '#f85888',
+  Bug: '#a8b820',
+  Rock: '#b8a038',
+  Ghost: '#705898',
+  Dragon: '#7038f8',
+  Fairy: '#ee99ac',
+  Steel: '#b8b8d0'
+}
+
+/** Types offered when creating a topic (all 17 present in gen 1). */
+export const ALL_TYPES = Object.keys(TYPE_LABELS_ES) as PokeType[]
+
 export function rarityOf(id: number): Rarity {
   if (LEGENDARY.has(id)) return 'legendary'
   if (RARE.has(id)) return 'rare'

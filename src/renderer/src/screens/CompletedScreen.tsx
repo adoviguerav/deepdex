@@ -3,6 +3,7 @@ import { BADGES } from '../../../shared/pokedex'
 import type { CompletionResult } from '../../../shared/types'
 import Egg from '../components/Egg'
 import Sprite from '../components/Sprite'
+import { playBadge, playHatch, playLevelUp } from '../sound'
 
 const RARITY_LABEL: Record<string, string> = {
   common: 'COMÚN',
@@ -27,12 +28,19 @@ export default function CompletedScreen({
     return () => clearTimeout(timer)
   }, [])
 
+  useEffect(() => {
+    if (!revealed) return
+    if (hatch) playHatch()
+    if (leveledUp) setTimeout(playLevelUp, 900)
+    if (result.newBadges.length > 0) setTimeout(playBadge, 1800)
+  }, [revealed, hatch, leveledUp, result.newBadges.length])
+
   if (hatch && !revealed) {
     return (
       <div className="app completed-screen" onClick={() => setRevealed(true)}>
         <div className="completed-title">¡SESIÓN COMPLETADA!</div>
         <div className="hatch-egg">
-          <Egg tier="common" wobble />
+          <Egg tier={result.eggTier} wobble />
         </div>
         <div className="egg-hint">El huevo se está rompiendo…</div>
       </div>

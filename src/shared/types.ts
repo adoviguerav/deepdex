@@ -26,6 +26,11 @@ export interface StreakState {
   best: number
   /** Local day (YYYY-MM-DD) of the last completed session */
   lastDay: string | null
+  /**
+   * Streak shields: earned every 7 straight days (max 2 held). A single
+   * missed day consumes one instead of resetting the streak.
+   */
+  shields: number
 }
 
 export interface Settings {
@@ -43,6 +48,8 @@ export interface GameData {
   /** Keyed by national pokédex id (1-151) */
   caught: Record<number, CaughtRecord>
   badges: string[]
+  /** Favourite caught Pokémon, shown on the home screen. */
+  companionId: number | null
   settings: Settings
 }
 
@@ -56,6 +63,7 @@ export interface HatchResult {
 
 export interface CompletionResult {
   xpGained: number
+  eggTier: EggTier
   levelBefore: number
   levelAfter: number
   newBadges: string[]

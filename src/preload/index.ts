@@ -7,6 +7,7 @@ export interface DeepdexApi {
   getSession(): Promise<SessionState>
   getData(): Promise<GameData>
   updateSettings(partial: Partial<Settings>): Promise<GameData>
+  setCompanion(pokemonId: number | null): Promise<GameData>
   onSessionUpdate(cb: (state: SessionState) => void): () => void
   onSessionCompleted(cb: (result: CompletionResult) => void): () => void
 }
@@ -23,6 +24,7 @@ const api: DeepdexApi = {
   getSession: () => ipcRenderer.invoke('session:get'),
   getData: () => ipcRenderer.invoke('data:get'),
   updateSettings: (partial) => ipcRenderer.invoke('settings:update', partial),
+  setCompanion: (pokemonId) => ipcRenderer.invoke('companion:set', pokemonId),
   onSessionUpdate: (cb) => subscribe('session:update', cb),
   onSessionCompleted: (cb) => subscribe('session:completed', cb)
 }

@@ -23,11 +23,26 @@ function localDay(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000
+const MAX_SHIELDS = 2
+
 function updateStreak(streak: StreakState, now: Date): void {
   const today = localDay(now)
   if (streak.lastDay === today) return
-  const yesterday = localDay(new Date(now.getTime() - 24 * 60 * 60 * 1000))
-  streak.current = streak.lastDay === yesterday ? streak.current + 1 : 1
+  const yesterday = localDay(new Date(now.getTime() - DAY_MS))
+  const dayBefore = localDay(new Date(now.getTime() - 2 * DAY_MS))
+  if (streak.lastDay === yesterday) {
+    streak.current += 1
+  } else if (streak.lastDay === dayBefore && streak.shields > 0) {
+    // One missed day: a shield saves the streak instead of resetting it.
+    streak.shields -= 1
+    streak.current += 1
+  } else {
+    streak.current = 1
+  }
+  if (streak.current > 0 && streak.current % 7 === 0) {
+    streak.shields = Math.min(MAX_SHIELDS, streak.shields + 1)
+  }
   streak.best = Math.max(streak.best, streak.current)
   streak.lastDay = today
 }
@@ -105,6 +120,7 @@ export function grantCompletion(
   const levelAfter = levelForXp(data.xp)
   return {
     xpGained: durationMin,
+    eggTier,
     levelBefore,
     levelAfter,
     newBadges,
