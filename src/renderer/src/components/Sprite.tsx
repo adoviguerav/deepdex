@@ -32,6 +32,8 @@ export default function Sprite({
       height={size}
       alt={alt}
       draggable={false}
+      loading="lazy"
+      decoding="async"
       onError={() => setFailed(true)}
     />
   )

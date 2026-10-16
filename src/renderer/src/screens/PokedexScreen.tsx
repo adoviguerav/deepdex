@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { nameOf, rarityOf, TOTAL_SPECIES, typesOf } from '../../../shared/pokedex'
+import { GENERATIONS, nameOf, rarityOf, TOTAL_SPECIES, typesOf } from '../../../shared/pokedex'
 import type { GameData } from '../../../shared/types'
 import Sprite from '../components/Sprite'
 import TypeChip from '../components/TypeChip'
@@ -19,8 +19,12 @@ export default function PokedexScreen({
   onDataChanged: (data: GameData) => void
 }): JSX.Element {
   const [selected, setSelected] = useState<number | null>(null)
+  const [gen, setGen] = useState<number>(1)
   const caughtCount = Object.keys(data.caught).length
-  const ids = Array.from({ length: TOTAL_SPECIES }, (_, i) => i + 1)
+  const region = GENERATIONS.find((g) => g.gen === gen) ?? GENERATIONS[0]
+  const ids = Array.from({ length: region.to - region.from + 1 }, (_, i) => region.from + i)
+  const caughtIn = (from: number, to: number): number =>
+    Object.keys(data.caught).filter((k) => Number(k) >= from && Number(k) <= to).length
 
   const record = selected ? data.caught[selected] : undefined
 
@@ -36,6 +40,21 @@ export default function PokedexScreen({
     <div className="pokedex">
       <div className="pokedex-header panel">
         POKÉDEX: {caughtCount}/{TOTAL_SPECIES}
+        <div className="region-tabs">
+          {GENERATIONS.map((g) => (
+            <button
+              key={g.gen}
+              className={g.gen === gen ? 'region-tab active' : 'region-tab'}
+              aria-pressed={g.gen === gen}
+              onClick={() => setGen(g.gen)}
+            >
+              <span>{g.region.toUpperCase()}</span>
+              <span className="region-count">
+                {caughtIn(g.from, g.to)}/{g.to - g.from + 1}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
       <div className="pokedex-grid">
         {ids.map((id) => {

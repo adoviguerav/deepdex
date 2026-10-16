@@ -67,7 +67,7 @@ export interface GameData {
   sessionsCompleted: number
   sessionsAborted: number
   streak: StreakState
-  /** Keyed by national pokédex id (1-151) */
+  /** Keyed by national pokédex id (1-649) */
   caught: Record<number, CaughtRecord>
   badges: string[]
   /** Favourite caught Pokémon, shown on the home screen. */

@@ -20,7 +20,7 @@ Resultado esperado: una app de escritorio para macOS donde inicia una sesión de
 | D3 | Gamificación | Entrenador completo: huevo por sesión que eclosiona en un Pokémon (mejor cuanto más larga la sesión), XP de entrenador por minuto de foco, niveles, Pokédex de capturas, rachas diarias y medallas de gimnasio como logros. |
 | D4 | Alcance de bloqueo MVP | Apps de macOS + webs en cualquier navegador vía `/etc/hosts` (pide contraseña de admin al iniciar/terminar sesión). |
 | D5 | Datos | Local, JSON en el directorio de usuario de la app. Sin cuentas ni sync. |
-| D6 | Sprites | Dataset embebido de la 1ª generación (151 Pokémon) con sprites oficiales servidos desde el repositorio de PokeAPI en GitHub. |
+| D6 | Sprites | Dataset embebido de las generaciones 1-5 (649 Pokémon) con sprites oficiales empaquetados en la app (ampliado el 2026-10-16; antes 1ª generación servida desde GitHub). |
 
 ## 3. Funcionamiento
 
@@ -41,7 +41,7 @@ Resultado esperado: una app de escritorio para macOS donde inicia una sesión de
 ### Gamificación (D3)
 - **Huevos**: al iniciar una sesión se asigna un huevo cuya calidad depende de la duración: <45 min → común; 45–79 → raro; ≥80 → superraro. La calidad define las probabilidades de rareza del Pokémon al eclosionar (común / infrecuente / raro / legendario, con legendarios solo posibles en huevos superraros). ~1/64 de probabilidad de shiny, duplicada con racha ≥7 días.
 - **XP y nivel de entrenador**: 1 XP por minuto completado. Nivel n requiere `100 × n^1.5` XP acumulada (redondeado). El nivel solo sube, nunca baja.
-- **Pokédex**: los 151 de la 1ª generación; los no capturados se muestran en silueta. Repetidos cuentan (contador por especie).
+- **Pokédex**: los 649 de las generaciones 1-5, organizados por región (Kanto, Johto, Hoenn, Sinnoh, Teselia); los no capturados se muestran en silueta. Repetidos cuentan (contador por especie).
 - **Rachas**: días consecutivos con al menos una sesión completada.
 - **Medallas** (8, estilo gimnasio): primera sesión, 10 h totales, 50 h, 100 h, 250 h, racha de 7 días, racha de 30 días, 50 especies distintas.
 
@@ -49,7 +49,7 @@ Resultado esperado: una app de escritorio para macOS donde inicia una sesión de
 1. **Inicio**: saludo de entrenador, selector de duración, racha, huevo que tocaría, acceso al resto.
 2. **Sesión**: temporizador grande, huevo animado, contador de bloqueos, botón de emergencia.
 3. **Eclosión**: animación de revelado al completar.
-4. **Pokédex**: rejilla 151 con siluetas/capturas.
+4. **Pokédex**: rejilla por región con siluetas/capturas y contador por región.
 5. **Entrenador**: nivel, barra de XP, medallas, horas totales, sesiones, abortos, racha máxima.
 6. **Ajustes**: listas negras de apps y dominios, duración personalizada.
 
@@ -72,7 +72,8 @@ deepdex/
 │   │   ├── src/App.tsx, screens/, components/, styles/
 │   └── shared/          # tipos y datos comunes
 │       ├── types.ts
-│       └── pokedex.ts   # dataset 151 + rarezas + probabilidades
+│       ├── pokedex.ts   # tipos, rarezas, probabilidades, medallas
+│       └── pokedexData.ts # datos generados de los 649 (gens 1-5)
 ```
 
 - IPC tipado: renderer solo habla con main a través del preload (`window.deepdex`).
@@ -112,15 +113,24 @@ Peticiones del usuario tras la v1: contar horas por tarea/tema con salida a fich
 
 **Ideas investigadas y aplazadas** (candidatas a fase 6): caramelos por repetidos para evolucionar capturas (estilo Pokémon GO), sistema de pity que garantice un raro tras N huevos sin suerte, capítulos mensuales con cierre limpio (isla/región terminada cada mes), quest book diario (2-3 objetivos), sesiones de foco en compañía (multijugador), y estadísticas semanales por tema.
 
+## 5c. Generaciones 1-5 y recursos locales (2026-10-16)
+
+- Pokédex ampliada a 649 especies (Kanto a Teselia). Nombres, tipos modernos y rarezas se generan desde los CSV de PokeAPI.
+- Rareza por regla, sin listas a mano: legendario = legendario o singular; raro = evolución final con estadísticas base >= 480; infrecuente = evolucionado, estadísticas >= 400 o ratio de captura <= 75; común = resto. Resultado: 175 comunes, 248 infrecuentes, 178 raros, 48 legendarios.
+- Nuevo tipo Siniestro (aparece desde la 2ª generación), disponible también como afinidad de tema.
+- Sprites normales y shiny en `src/renderer/public/sprites`, fuente Press Start 2P en `src/renderer/src/assets/fonts`. La app ya no hace peticiones a GitHub ni a Google.
+- Pokédex con pestañas por región y contador de capturas en cada una.
+- Los datos guardados no cambian: los IDs 1-151 siguen siendo los mismos.
+
 ## 6. Fuera de alcance (por ahora)
 
 - Bloqueo a nivel de red/extensión de navegador (hosts es suficiente para el uso personal).
 - Modo «no salir de la tarea definida» (mencionado como idea futura).
 - Sync entre dispositivos, cuentas, versión iOS.
-- Generaciones de Pokémon posteriores a la primera.
+- Generaciones de Pokémon posteriores a la quinta.
 
 ## 7. Riesgos conocidos
 
 - `/etc/hosts` no corta conexiones ya abiertas (una pestaña de Twitter ya cargada sigue viva hasta recargar); aceptado para v1.
-- Los sprites cargan desde GitHub: sin internet se muestra un placeholder pixelado.
+- Sprites y fuente van empaquetados: la app no necesita internet para nada.
 - Uso personal de sprites de Pokémon: no distribuir la app públicamente.

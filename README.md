@@ -1,6 +1,6 @@
 # DeepDex
 
-App personal de deep work para macOS con temática Pokémon. Inicias una sesión de foco con temporizador; mientras dura, las apps y webs de tu lista negra quedan bloqueadas. Cada sesión completada incuba un huevo que eclosiona en un Pokémon de la 1ª generación, y tus horas acumuladas suben tu nivel de entrenador, tu racha y tus medallas.
+App personal de deep work para macOS con temática Pokémon. Inicias una sesión de foco con temporizador; mientras dura, las apps y webs de tu lista negra quedan bloqueadas. Cada sesión completada incuba un huevo que eclosiona en un Pokémon de las generaciones 1 a 5 (649 especies, de Kanto a Teselia), y tus horas acumuladas suben tu nivel de entrenador, tu racha y tus medallas.
 
 El diseño completo está en [PRD.md](PRD.md).
 
@@ -42,6 +42,6 @@ Abortar una sesión exige escribir «necesito salir de verdad», confirmar y agu
 
 ## Datos
 
-Todo es local: `~/Library/Application Support/deepdex/deepdex-data.json` (XP, capturas, medallas, rachas y ajustes). Los sprites cargan del repositorio de PokeAPI en GitHub; sin conexión se muestra un placeholder.
+Todo es local: `~/Library/Application Support/deepdex/deepdex-data.json` (XP, capturas, medallas, rachas y ajustes). Los sprites (649 normales y 649 shiny) y la fuente pixel van dentro de la app, así que todo funciona sin conexión. Los datos de especies se generan desde PokeAPI en `src/shared/pokedexData.ts`.
 
 Uso personal: los sprites de Pokémon son propiedad de Nintendo/Game Freak; no distribuyas la app.

@@ -1,84 +1,23 @@
+import { POKEMON_NAMES, POKEMON_RARITY, POKEMON_TYPES } from './pokedexData'
 import type { EggTier, Rarity } from './types'
 
-/** National dex names, index 0 = #1 Bulbasaur. */
-export const POKEMON_NAMES = [
-  'Bulbasaur', 'Ivysaur', 'Venusaur', 'Charmander', 'Charmeleon', 'Charizard',
-  'Squirtle', 'Wartortle', 'Blastoise', 'Caterpie', 'Metapod', 'Butterfree',
-  'Weedle', 'Kakuna', 'Beedrill', 'Pidgey', 'Pidgeotto', 'Pidgeot',
-  'Rattata', 'Raticate', 'Spearow', 'Fearow', 'Ekans', 'Arbok',
-  'Pikachu', 'Raichu', 'Sandshrew', 'Sandslash', 'Nidoran♀', 'Nidorina',
-  'Nidoqueen', 'Nidoran♂', 'Nidorino', 'Nidoking', 'Clefairy', 'Clefable',
-  'Vulpix', 'Ninetales', 'Jigglypuff', 'Wigglytuff', 'Zubat', 'Golbat',
-  'Oddish', 'Gloom', 'Vileplume', 'Paras', 'Parasect', 'Venonat',
-  'Venomoth', 'Diglett', 'Dugtrio', 'Meowth', 'Persian', 'Psyduck',
-  'Golduck', 'Mankey', 'Primeape', 'Growlithe', 'Arcanine', 'Poliwag',
-  'Poliwhirl', 'Poliwrath', 'Abra', 'Kadabra', 'Alakazam', 'Machop',
-  'Machoke', 'Machamp', 'Bellsprout', 'Weepinbell', 'Victreebel', 'Tentacool',
-  'Tentacruel', 'Geodude', 'Graveler', 'Golem', 'Ponyta', 'Rapidash',
-  'Slowpoke', 'Slowbro', 'Magnemite', 'Magneton', "Farfetch'd", 'Doduo',
-  'Dodrio', 'Seel', 'Dewgong', 'Grimer', 'Muk', 'Shellder',
-  'Cloyster', 'Gastly', 'Haunter', 'Gengar', 'Onix', 'Drowzee',
-  'Hypno', 'Krabby', 'Kingler', 'Voltorb', 'Electrode', 'Exeggcute',
-  'Exeggutor', 'Cubone', 'Marowak', 'Hitmonlee', 'Hitmonchan', 'Lickitung',
-  'Koffing', 'Weezing', 'Rhyhorn', 'Rhydon', 'Chansey', 'Tangela',
-  'Kangaskhan', 'Horsea', 'Seadra', 'Goldeen', 'Seaking', 'Staryu',
-  'Starmie', 'Mr. Mime', 'Scyther', 'Jynx', 'Electabuzz', 'Magmar',
-  'Pinsir', 'Tauros', 'Magikarp', 'Gyarados', 'Lapras', 'Ditto',
-  'Eevee', 'Vaporeon', 'Jolteon', 'Flareon', 'Porygon', 'Omanyte',
-  'Omastar', 'Kabuto', 'Kabutops', 'Aerodactyl', 'Snorlax', 'Articuno',
-  'Zapdos', 'Moltres', 'Dratini', 'Dragonair', 'Dragonite', 'Mewtwo', 'Mew'
-]
+export { POKEMON_NAMES }
 
-export const TOTAL_SPECIES = POKEMON_NAMES.length // 151
+export const TOTAL_SPECIES = POKEMON_NAMES.length // 649
 
-const LEGENDARY = new Set([144, 145, 146, 150, 151])
-
-const RARE = new Set([
-  3, 6, 9, 31, 34, 59, 62, 65, 68, 71, 76, 80, 89, 91, 94, 103, 106, 107,
-  112, 113, 115, 121, 123, 124, 125, 126, 127, 128, 130, 131, 132, 134, 135,
-  136, 137, 139, 141, 142, 143, 148, 149
-])
-
-const UNCOMMON = new Set([
-  2, 5, 8, 12, 15, 18, 20, 22, 24, 25, 26, 28, 30, 33, 36, 38, 40, 42, 45,
-  47, 49, 51, 53, 55, 57, 58, 61, 64, 67, 70, 73, 75, 78, 82, 83, 85, 87,
-  93, 95, 97, 99, 101, 105, 108, 110, 111, 114, 117, 119, 120, 122, 133,
-  138, 140, 147
-])
+/** National dex ranges per generation, inclusive. */
+export const GENERATIONS = [
+  { gen: 1, region: 'Kanto', from: 1, to: 151 },
+  { gen: 2, region: 'Johto', from: 152, to: 251 },
+  { gen: 3, region: 'Hoenn', from: 252, to: 386 },
+  { gen: 4, region: 'Sinnoh', from: 387, to: 493 },
+  { gen: 5, region: 'Teselia', from: 494, to: 649 }
+] as const
 
 export type PokeType =
   | 'Normal' | 'Fire' | 'Water' | 'Grass' | 'Electric' | 'Ice' | 'Fighting'
   | 'Poison' | 'Ground' | 'Flying' | 'Psychic' | 'Bug' | 'Rock' | 'Ghost'
-  | 'Dragon' | 'Fairy' | 'Steel'
-
-/** Types per species, index 0 = #1. Modern typing (Clefairy is Fairy, Magnemite Electric/Steel). */
-const POKEMON_TYPES: string[] = [
-  'Grass/Poison', 'Grass/Poison', 'Grass/Poison', 'Fire', 'Fire', 'Fire/Flying',
-  'Water', 'Water', 'Water', 'Bug', 'Bug', 'Bug/Flying',
-  'Bug/Poison', 'Bug/Poison', 'Bug/Poison', 'Normal/Flying', 'Normal/Flying', 'Normal/Flying',
-  'Normal', 'Normal', 'Normal/Flying', 'Normal/Flying', 'Poison', 'Poison',
-  'Electric', 'Electric', 'Ground', 'Ground', 'Poison', 'Poison',
-  'Poison/Ground', 'Poison', 'Poison', 'Poison/Ground', 'Fairy', 'Fairy',
-  'Fire', 'Fire', 'Normal/Fairy', 'Normal/Fairy', 'Poison/Flying', 'Poison/Flying',
-  'Grass/Poison', 'Grass/Poison', 'Grass/Poison', 'Bug/Grass', 'Bug/Grass', 'Bug/Poison',
-  'Bug/Poison', 'Ground', 'Ground', 'Normal', 'Normal', 'Water',
-  'Water', 'Fighting', 'Fighting', 'Fire', 'Fire', 'Water',
-  'Water', 'Water/Fighting', 'Psychic', 'Psychic', 'Psychic', 'Fighting',
-  'Fighting', 'Fighting', 'Grass/Poison', 'Grass/Poison', 'Grass/Poison', 'Water/Poison',
-  'Water/Poison', 'Rock/Ground', 'Rock/Ground', 'Rock/Ground', 'Fire', 'Fire',
-  'Water/Psychic', 'Water/Psychic', 'Electric/Steel', 'Electric/Steel', 'Normal/Flying', 'Normal/Flying',
-  'Normal/Flying', 'Water', 'Water/Ice', 'Poison', 'Poison', 'Water',
-  'Water/Ice', 'Ghost/Poison', 'Ghost/Poison', 'Ghost/Poison', 'Rock/Ground', 'Psychic',
-  'Psychic', 'Water', 'Water', 'Electric', 'Electric', 'Grass/Psychic',
-  'Grass/Psychic', 'Ground', 'Ground', 'Fighting', 'Fighting', 'Normal',
-  'Poison', 'Poison', 'Ground/Rock', 'Ground/Rock', 'Normal', 'Grass',
-  'Normal', 'Water', 'Water', 'Water', 'Water', 'Water',
-  'Water/Psychic', 'Psychic/Fairy', 'Bug/Flying', 'Ice/Psychic', 'Electric', 'Fire',
-  'Bug', 'Normal', 'Water', 'Water/Flying', 'Water/Ice', 'Normal',
-  'Normal', 'Water', 'Electric', 'Fire', 'Normal', 'Rock/Water',
-  'Rock/Water', 'Rock/Water', 'Rock/Water', 'Rock/Flying', 'Normal', 'Ice/Flying',
-  'Electric/Flying', 'Fire/Flying', 'Dragon', 'Dragon', 'Dragon/Flying', 'Psychic', 'Psychic'
-]
+  | 'Dragon' | 'Dark' | 'Steel' | 'Fairy'
 
 export function typesOf(id: number): PokeType[] {
   return (POKEMON_TYPES[id - 1] ?? 'Normal').split('/') as PokeType[]
@@ -100,8 +39,9 @@ export const TYPE_LABELS_ES: Record<PokeType, string> = {
   Rock: 'Roca',
   Ghost: 'Fantasma',
   Dragon: 'Dragón',
-  Fairy: 'Hada',
-  Steel: 'Acero'
+  Dark: 'Siniestro',
+  Steel: 'Acero',
+  Fairy: 'Hada'
 }
 
 export const TYPE_COLORS: Record<PokeType, string> = {
@@ -120,27 +60,32 @@ export const TYPE_COLORS: Record<PokeType, string> = {
   Rock: '#b8a038',
   Ghost: '#705898',
   Dragon: '#7038f8',
-  Fairy: '#ee99ac',
-  Steel: '#b8b8d0'
+  Dark: '#705848',
+  Steel: '#b8b8d0',
+  Fairy: '#ee99ac'
 }
 
-/** Types offered when creating a topic (all 17 present in gen 1). */
+/** Types offered when creating a topic (all 18 appear in gens 1-5). */
 export const ALL_TYPES = Object.keys(TYPE_LABELS_ES) as PokeType[]
 
+const RARITY_CODES: Record<string, Rarity> = {
+  c: 'common',
+  u: 'uncommon',
+  r: 'rare',
+  l: 'legendary'
+}
+
 export function rarityOf(id: number): Rarity {
-  if (LEGENDARY.has(id)) return 'legendary'
-  if (RARE.has(id)) return 'rare'
-  if (UNCOMMON.has(id)) return 'uncommon'
-  return 'common'
+  return RARITY_CODES[POKEMON_RARITY[id - 1]] ?? 'common'
 }
 
 export function nameOf(id: number): string {
   return POKEMON_NAMES[id - 1] ?? `#${id}`
 }
 
+/** Sprites ship with the app (src/renderer/public/sprites), so they work offline. */
 export function spriteUrl(id: number, shiny = false): string {
-  const base = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
-  return shiny ? `${base}/shiny/${id}.png` : `${base}/${id}.png`
+  return shiny ? `./sprites/shiny/${id}.png` : `./sprites/${id}.png`
 }
 
 /** Hatch odds per egg tier: [common, uncommon, rare, legendary]. */
