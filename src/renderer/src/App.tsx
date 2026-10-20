@@ -1,18 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { CompletionResult, GameData, SessionState } from '../../shared/types'
 import CompletedScreen from './screens/CompletedScreen'
 import Home from './screens/Home'
+import HoursScreen from './screens/HoursScreen'
 import PokedexScreen from './screens/PokedexScreen'
 import SessionScreen from './screens/SessionScreen'
 import SettingsScreen from './screens/SettingsScreen'
-import TopicsScreen from './screens/TopicsScreen'
 import TrainerScreen from './screens/TrainerScreen'
 
-export type View = 'home' | 'topics' | 'pokedex' | 'trainer' | 'settings'
+export type View = 'home' | 'hours' | 'pokedex' | 'trainer' | 'settings'
 
 const NAV: { view: View; label: string }[] = [
   { view: 'home', label: 'INICIO' },
-  { view: 'topics', label: 'TEMAS' },
+  { view: 'hours', label: 'HORAS' },
   { view: 'pokedex', label: 'POKÉDEX' },
   { view: 'trainer', label: 'ENTRENA.' },
   { view: 'settings', label: 'AJUSTES' }
@@ -27,6 +27,13 @@ export default function App(): JSX.Element {
   useEffect(() => {
     void window.deepdex.getData().then(setData)
     void window.deepdex.getSession().then(setSession)
+    // A session may have finished while the window was closed.
+    void window.deepdex.getPendingResult().then((pending) => {
+      if (pending) {
+        setResult(pending)
+        setData(pending.data)
+      }
+    })
     const offUpdate = window.deepdex.onSessionUpdate(setSession)
     const offCompleted = window.deepdex.onSessionCompleted((res) => {
       setResult(res)
@@ -38,16 +45,21 @@ export default function App(): JSX.Element {
     }
   }, [])
 
-  const refreshData = (): void => {
+  const refreshData = useCallback((): void => {
     void window.deepdex.getData().then(setData)
-  }
+  }, [])
+
+  const dismissResult = useCallback((): void => {
+    setResult(null)
+    void window.deepdex.ackResult()
+  }, [])
 
   if (!data || !session) {
     return <div className="app loading">CARGANDO…</div>
   }
 
   if (result) {
-    return <CompletedScreen result={result} onDismiss={() => setResult(null)} />
+    return <CompletedScreen result={result} onDismiss={dismissResult} />
   }
 
   if (session.phase === 'running') {
@@ -58,7 +70,7 @@ export default function App(): JSX.Element {
     <div className="app">
       <main className="app-content">
         {view === 'home' && <Home data={data} onDataChanged={setData} />}
-        {view === 'topics' && <TopicsScreen data={data} onDataChanged={setData} />}
+        {view === 'hours' && <HoursScreen data={data} onDataChanged={setData} />}
         {view === 'pokedex' && <PokedexScreen data={data} onDataChanged={setData} />}
         {view === 'trainer' && <TrainerScreen data={data} />}
         {view === 'settings' && <SettingsScreen data={data} onDataChanged={setData} />}

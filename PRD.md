@@ -122,6 +122,31 @@ Peticiones del usuario tras la v1: contar horas por tarea/tema con salida a fich
 - Pokédex con pestañas por región y contador de capturas en cada una.
 - Los datos guardados no cambian: los IDs 1-151 siguen siendo los mismos.
 
+## 5d. Estadísticas de horas y arreglos de la revisión (2026-10-20)
+
+**Estadísticas.** La pestaña TEMAS pasa a llamarse HORAS e incluye: cifras de hoy, esta semana (desde el lunes), este mes y media diaria de los últimos 30 días; barras de los últimos 14 días con desglose por tema en el tooltip; calendario de foco de 12 semanas; hábitos (porcentaje de sesiones completadas, duración media, minutos por franja del día); y horas por tema esta semana frente al total. Se calculan con `computeStats` en `src/shared/stats.ts` a partir del historial de sesiones.
+
+**Arreglos de la revisión de octubre:**
+
+| Problema | Arreglo |
+|---|---|
+| La cuenta atrás de emergencia se reiniciaba cada segundo y nunca abortaba | Cuenta contra una hora límite fija |
+| Cmd+Q o «Salir» abortaban sin fricción | Salir con sesión en curso abre la salida de emergencia; solo el apagado del Mac aborta directamente |
+| Carreras entre bloquear y desbloquear webs | Cola única de operaciones sobre `/etc/hosts` y un contador de generación que deshace un bloqueo concedido tarde |
+| Fichero temporal leído como root | Eliminado: las líneas se escriben directamente tras validar cada dominio |
+| Cancelar la contraseña dejaba el estado ambiguo | Estados explícitos (esperando, bloqueadas, sin bloquear, nada que bloquear), botón para reintentar y aviso en Inicio si las webs quedan bloqueadas fuera de sesión |
+| Bloqueo de apps sin permiso fallaba en silencio | Aviso en la pantalla de sesión, `NSAppleEventsUsageDescription` en el Info.plist, tiempos límite y cierre forzoso por PID |
+| Subdominios sin bloquear | Variantes `www.`, `m.`, `mobile.` y subdominios conocidos |
+| Eclosión perdida con la ventana cerrada | Resultado pendiente hasta que la ventana lo muestra, y notificación del sistema al terminar |
+| JSON corrupto borraba el progreso | Copia `.bak` en cada guardado, fichero corrupto apartado y recuperación desde la copia |
+| Racha mal calculada en cambios de hora y que no caducaba en pantalla | Diferencia en días de calendario y racha efectiva mostrada |
+| macOS podía ralentizar los temporizadores en segundo plano | `powerSaveBlocker` durante la sesión |
+| Navegación de la ventana y `openExternal` sin restricciones | Navegación bloqueada, solo enlaces `https:` |
+
+Tests con Vitest (`npm test`, zona horaria Europe/Madrid): rachas (incluidos los cambios de hora), escudos, recompensas, eclosiones, niveles, estadísticas y validación de dominios.
+
+**Pendiente:** escala tipográfica legible (gran parte del texto mide menos de 8px), contraste de los chips de tipo claros, un helper privilegiado para no pedir la contraseña dos veces por sesión, y descontar el tiempo con el Mac en reposo.
+
 ## 6. Fuera de alcance (por ahora)
 
 - Bloqueo a nivel de red/extensión de navegador (hosts es suficiente para el uso personal).

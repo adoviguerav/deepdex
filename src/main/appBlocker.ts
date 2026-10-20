@@ -7,25 +7,32 @@ const execFileP = promisify(execFile)
 const PROTECTED = new Set(['deepdex', 'electron', 'finder', 'systemuiserver', 'dock'])
 
 const POLL_MS = 2000
+/** How long an app gets to quit politely before it is killed. */
+const GRACE_MS = 6000
+const OSASCRIPT_TIMEOUT_MS = 5000
 
 /**
  * While engaged, polls the visible macOS application processes every couple
- * of seconds and quits any that match the blocklist. A polite AppleScript
- * quit first; if the app is still there on the next poll (e.g. it showed a
- * "save changes?" dialog), a hard kill.
+ * of seconds and quits any that match the blocklist: a polite AppleScript
+ * quit first (without waiting for the app to answer), then a hard kill by PID
+ * if it is still running after a few seconds.
  */
 export class AppBlocker {
   private interval: ReturnType<typeof setInterval> | null = null
   private apps: string[] = []
-  private pendingHardKill = new Set<string>()
+  private quitRequestedAt = new Map<string, number>()
   private polling = false
 
-  constructor(private onBlocked: () => void) {}
+  constructor(
+    private onBlocked: () => void,
+    /** Called with true when System Events can't be queried (missing permission). */
+    private onPermissionIssue: (failing: boolean) => void
+  ) {}
 
   engage(apps: string[]): void {
     this.release()
     if (process.platform !== 'darwin') return
-    this.apps = apps.filter((a) => !PROTECTED.has(a.toLowerCase()))
+    this.apps = apps.map((a) => a.trim()).filter((a) => a && !PROTECTED.has(a.toLowerCase()))
     if (this.apps.length === 0) return
     this.interval = setInterval(() => void this.poll(), POLL_MS)
     void this.poll()
@@ -37,47 +44,71 @@ export class AppBlocker {
       this.interval = null
     }
     this.apps = []
-    this.pendingHardKill.clear()
+    this.quitRequestedAt.clear()
   }
 
   private async poll(): Promise<void> {
     if (this.polling) return
     this.polling = true
     try {
-      const { stdout } = await execFileP('osascript', [
-        '-e',
-        'tell application "System Events" to get name of every application process whose background only is false'
-      ])
-      const running = stdout
-        .trim()
-        .split(', ')
-        .map((name) => name.trim())
-        .filter(Boolean)
-      for (const name of running) {
-        const match = this.apps.find((app) => app.toLowerCase() === name.toLowerCase())
-        if (!match) continue
-        await this.quit(name)
-        this.onBlocked()
+      const { stdout } = await execFileP(
+        'osascript',
+        [
+          '-e',
+          'tell application "System Events" to get {name, unix id} of every application process whose background only is false'
+        ],
+        { timeout: OSASCRIPT_TIMEOUT_MS }
+      )
+      this.onPermissionIssue(false)
+      const tokens = stdout.trim().split(', ')
+      const half = tokens.length / 2
+      if (!Number.isInteger(half)) return
+      const names = tokens.slice(0, half).map((n) => n.trim())
+      const pids = tokens.slice(half).map(Number)
+      const now = Date.now()
+      for (let i = 0; i < names.length; i++) {
+        const name = names[i]
+        if (!this.apps.some((app) => app.toLowerCase() === name.toLowerCase())) continue
+        const requested = this.quitRequestedAt.get(name)
+        if (requested === undefined) {
+          this.quitRequestedAt.set(name, now)
+          this.requestQuit(name)
+          this.onBlocked()
+        } else if (now - requested >= GRACE_MS && Number.isInteger(pids[i])) {
+          this.kill(pids[i], name)
+          this.quitRequestedAt.delete(name)
+        }
+      }
+      for (const name of [...this.quitRequestedAt.keys()]) {
+        if (!names.includes(name)) this.quitRequestedAt.delete(name)
       }
     } catch (err) {
+      // -1743: the user hasn't allowed DeepDex to control System Events.
+      const message = String((err as Error)?.message ?? err)
+      if (message.includes('-1743') || message.includes('not allowed')) this.onPermissionIssue(true)
       console.error('App poll failed:', err)
     } finally {
       this.polling = false
     }
   }
 
-  private async quit(name: string): Promise<void> {
+  private requestQuit(name: string): void {
     const escaped = name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
-    try {
-      if (this.pendingHardKill.has(name)) {
-        await execFileP('pkill', ['-9', '-x', name])
-        this.pendingHardKill.delete(name)
-      } else {
-        this.pendingHardKill.add(name)
-        await execFileP('osascript', ['-e', `tell application "${escaped}" to quit`])
+    execFile(
+      'osascript',
+      ['-e', `ignoring application responses\ntell application "${escaped}" to quit\nend ignoring`],
+      { timeout: OSASCRIPT_TIMEOUT_MS },
+      (err) => {
+        if (err) console.error(`Failed to ask ${name} to quit:`, err)
       }
+    )
+  }
+
+  private kill(pid: number, name: string): void {
+    try {
+      process.kill(pid, 'SIGKILL')
     } catch (err) {
-      console.error(`Failed to quit ${name}:`, err)
+      console.error(`Failed to kill ${name} (${pid}):`, err)
     }
   }
 }

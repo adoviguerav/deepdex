@@ -9,7 +9,8 @@
     "build": "electron-vite build",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "start": "electron-vite preview",
-    "dist": "electron-vite build && electron-builder --mac"
+    "dist": "electron-vite build && electron-builder --mac",
+    "test": "TZ=Europe/Madrid vitest run"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -31,7 +32,10 @@
         "dmg",
         "zip"
       ],
-      "identity": null
+      "identity": null,
+      "extendInfo": {
+        "NSAppleEventsUsageDescription": "DeepDex cierra las apps de tu lista negra mientras dura una sesión de foco."
+      }
     }
   },
   "devDependencies": {
@@ -43,6 +47,7 @@
     "electron-builder": "^24.13.3",
     "electron-vite": "^2.3.0",
     "typescript": "^5.5.4",
-    "vite": "^5.4.2"
+    "vite": "^5.4.2",
+    "vitest": "^2.1.9"
   }
 }

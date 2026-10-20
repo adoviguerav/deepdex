@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import type { CompletionResult, SessionState } from '../shared/types'
+import type { CompletionResult, SessionState, WebBlockState } from '../shared/types'
 import { eggTierForDuration } from '../shared/types'
 import { grantCompletion, recordAbort } from './game'
 import type { Store } from './store'
@@ -19,7 +19,8 @@ function idleState(): SessionState {
     remainingSec: 0,
     blockedAttempts: 0,
     eggTier: null,
-    webBlockActive: false,
+    webBlock: 'none',
+    appBlockIssue: false,
     topicId: null,
     topicName: null
   }
@@ -68,7 +69,8 @@ export class SessionEngine extends EventEmitter {
 
   start(durationMin: number, topicId: string | null = null): SessionState {
     if (this.isRunning) return this.getState()
-    const minutes = Math.max(1, Math.min(240, Math.round(durationMin)))
+    if (!Number.isFinite(durationMin)) return this.getState()
+    const minutes = Math.max(10, Math.min(240, Math.round(durationMin)))
     const topic = this.store.data.topics.find((t) => t.id === topicId) ?? null
     this.state = {
       phase: 'running',
@@ -77,7 +79,8 @@ export class SessionEngine extends EventEmitter {
       remainingSec: minutes * 60,
       blockedAttempts: 0,
       eggTier: eggTierForDuration(minutes),
-      webBlockActive: false,
+      webBlock: 'pending',
+      appBlockIssue: false,
       topicId: topic?.id ?? null,
       topicName: topic?.name ?? null
     }
@@ -104,9 +107,15 @@ export class SessionEngine extends EventEmitter {
     return this.getState()
   }
 
-  setWebBlockActive(active: boolean): void {
+  setWebBlock(webBlock: WebBlockState): void {
     if (!this.isRunning) return
-    this.state.webBlockActive = active
+    this.state.webBlock = webBlock
+    this.emitUpdate()
+  }
+
+  setAppBlockIssue(failing: boolean): void {
+    if (!this.isRunning || this.state.appBlockIssue === failing) return
+    this.state.appBlockIssue = failing
     this.emitUpdate()
   }
 

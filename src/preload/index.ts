@@ -2,6 +2,11 @@ import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 import type { PokeType } from '../shared/pokedex'
 import type { CompletionResult, GameData, SessionState, Settings } from '../shared/types'
 
+export interface HostsStatus {
+  /** Websites still blocked although no session is running. */
+  lingering: boolean
+}
+
 export interface DeepdexApi {
   startSession(durationMin: number, topicId: string | null): Promise<SessionState>
   abortSession(): Promise<SessionState>
@@ -12,7 +17,14 @@ export interface DeepdexApi {
   createTopic(name: string, type: PokeType): Promise<GameData>
   deleteTopic(topicId: string): Promise<GameData>
   exportTopics(): Promise<{ saved: boolean; path?: string }>
+  getPendingResult(): Promise<CompletionResult | null>
+  ackResult(): Promise<void>
+  getHostsStatus(): Promise<HostsStatus>
+  releaseHosts(): Promise<HostsStatus>
+  retryWebBlock(): Promise<SessionState>
   onSessionUpdate(cb: (state: SessionState) => void): () => void
+  onOpenEmergency(cb: () => void): () => void
+  onHostsChanged(cb: () => void): () => void
   onSessionCompleted(cb: (result: CompletionResult) => void): () => void
 }
 
@@ -32,7 +44,14 @@ const api: DeepdexApi = {
   createTopic: (name, type) => ipcRenderer.invoke('topics:create', name, type),
   deleteTopic: (topicId) => ipcRenderer.invoke('topics:delete', topicId),
   exportTopics: () => ipcRenderer.invoke('topics:export'),
+  getPendingResult: () => ipcRenderer.invoke('result:pending'),
+  ackResult: () => ipcRenderer.invoke('result:ack'),
+  getHostsStatus: () => ipcRenderer.invoke('hosts:status'),
+  releaseHosts: () => ipcRenderer.invoke('hosts:release'),
+  retryWebBlock: () => ipcRenderer.invoke('hosts:retry'),
   onSessionUpdate: (cb) => subscribe('session:update', cb),
+  onOpenEmergency: (cb) => subscribe('session:open-emergency', cb),
+  onHostsChanged: (cb) => subscribe('hosts:changed', cb),
   onSessionCompleted: (cb) => subscribe('session:completed', cb)
 }
 

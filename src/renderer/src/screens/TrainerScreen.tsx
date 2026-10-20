@@ -1,6 +1,6 @@
 import { BADGES, TOTAL_SPECIES } from '../../../shared/pokedex'
 import type { GameData } from '../../../shared/types'
-import { levelForXp, xpForLevel } from '../../../shared/types'
+import { displayStreak, levelForXp, xpForLevel } from '../../../shared/types'
 
 export default function TrainerScreen({ data }: { data: GameData }): JSX.Element {
   const level = levelForXp(data.xp)
@@ -29,9 +29,9 @@ export default function TrainerScreen({ data }: { data: GameData }): JSX.Element
           <div className="stat-row"><span>Horas de foco</span><span>{hours}h {minutes}m</span></div>
           <div className="stat-row"><span>Sesiones completadas</span><span>{data.sessionsCompleted}</span></div>
           <div className="stat-row"><span>Sesiones abortadas</span><span>{data.sessionsAborted}</span></div>
-          <div className="stat-row"><span>Racha actual</span><span>{data.streak.current} días</span></div>
+          <div className="stat-row"><span>Racha actual</span><span>{displayStreak(data.streak)} {displayStreak(data.streak) === 1 ? 'día' : 'días'}</span></div>
           <div className="stat-row"><span>Escudos de racha</span><span>🛡 {data.streak.shields}/2</span></div>
-          <div className="stat-row"><span>Mejor racha</span><span>{data.streak.best} días</span></div>
+          <div className="stat-row"><span>Mejor racha</span><span>{data.streak.best} {data.streak.best === 1 ? 'día' : 'días'}</span></div>
           <div className="stat-row"><span>Especies capturadas</span><span>{speciesCount}/{TOTAL_SPECIES}</span></div>
         </div>
       </div>

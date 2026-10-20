@@ -272,6 +272,48 @@ input {
   color: var(--gb-lightest);
 }
 
+.web-block {
+  max-width: 360px;
+  text-align: center;
+  line-height: 1.8;
+}
+
+.retry-btn {
+  padding: 8px 12px;
+  border: 2px solid var(--gb-light);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--gb-lightest);
+  font-size: 8px;
+}
+
+.retry-btn:disabled {
+  opacity: 0.6;
+}
+
+.start-note {
+  margin-top: 10px;
+  font-size: 8px;
+  line-height: 1.8;
+  text-align: center;
+  color: var(--gb-dark);
+}
+
+.hosts-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 8px;
+  line-height: 1.8;
+  border-color: var(--red);
+}
+
+.hosts-banner .preset {
+  align-self: flex-start;
+  padding: 8px 12px;
+  font-size: 8px;
+}
+
 /* ---- emergency modal ---- */
 .modal-backdrop {
   position: fixed;
@@ -747,6 +789,241 @@ input {
   text-align: center;
   color: var(--gb-dark);
   word-break: break-all;
+}
+
+
+/* ---- hours & stats ---- */
+.hours {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.hours-empty {
+  font-size: 9px;
+  line-height: 2;
+  color: var(--gb-dark);
+  text-align: center;
+}
+
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stat-tile {
+  background: var(--gb-darkest);
+  color: var(--gb-lightest);
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: var(--shadow);
+}
+
+.stat-tile-label {
+  font-size: 8px;
+  color: var(--gb-light);
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.stat-tile-value {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-box {
+  position: relative;
+}
+
+.chart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart-grid {
+  stroke: rgba(48, 98, 48, 0.18);
+  stroke-width: 1;
+}
+
+.chart-axis {
+  stroke: var(--gb-dark);
+  stroke-width: 1.5;
+}
+
+.chart-label {
+  font-size: 9px;
+  fill: var(--gb-dark);
+}
+
+.chart-label.strong {
+  fill: var(--ink);
+}
+
+.chart-bar {
+  fill: var(--gb-light);
+}
+
+.chart-bar.today {
+  fill: var(--gb-dark);
+}
+
+.chart-hit {
+  fill: transparent;
+  outline: none;
+}
+
+.chart-hit:focus-visible,
+.heat-cell:focus-visible {
+  stroke: var(--red);
+  stroke-width: 2;
+  outline: none;
+}
+
+.heat-cell.empty {
+  fill: var(--cream);
+  stroke: rgba(48, 98, 48, 0.25);
+  stroke-width: 1;
+}
+
+.heatmap {
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.heat-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 8px;
+  color: var(--gb-dark);
+}
+
+.heat-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.heat-swatch.empty {
+  background: var(--cream);
+  border: 1px solid rgba(48, 98, 48, 0.25);
+}
+
+.heat-legend-note {
+  width: 100%;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.chart-tip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 8px));
+  background: var(--gb-darkest);
+  color: var(--gb-lightest);
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 8px;
+  line-height: 1.8;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.chart-tip-title {
+  color: var(--gb-light);
+}
+
+.chart-note {
+  margin-top: 10px;
+  font-size: 8px;
+  line-height: 1.8;
+  color: var(--gb-dark);
+}
+
+.habit-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.habit-row .stat-tile-label {
+  color: var(--gb-dark);
+}
+
+.habit-value {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hbar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hbar-label {
+  width: 84px;
+  flex-shrink: 0;
+  font-size: 8px;
+}
+
+.hbar-track {
+  flex: 1;
+  height: 10px;
+  border: 2px solid var(--ink);
+  border-radius: 5px;
+  background: var(--cream);
+  overflow: hidden;
+}
+
+.hbar-fill {
+  display: block;
+  height: 100%;
+  background: var(--gb-light);
+}
+
+.hbar-fill.muted {
+  background: rgba(48, 98, 48, 0.4);
+}
+
+.hbar-value {
+  width: 64px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.topic-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.topic-total {
+  font-size: 8px;
+  color: var(--gb-dark);
+}
+
+.export-msg {
+  user-select: text;
 }
 
 /* ---- trainer ---- */

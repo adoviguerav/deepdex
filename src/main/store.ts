@@ -1,5 +1,5 @@
 import { app } from 'electron'
-import { existsSync, readFileSync, writeFileSync, renameSync } from 'fs'
+import { closeSync, copyFileSync, existsSync, fsyncSync, openSync, readFileSync, renameSync, writeSync } from 'fs'
 import { join } from 'path'
 import type { GameData } from '../shared/types'
 
@@ -7,6 +7,8 @@ export const DEFAULT_APPS = ['WhatsApp', 'Telegram', 'Discord']
 
 export const DEFAULT_DOMAINS = [
   'web.whatsapp.com',
+  'web.telegram.org',
+  'discord.com',
   'twitter.com',
   'x.com',
   'instagram.com',
@@ -60,28 +62,59 @@ export class Store {
   private load(): void {
     const file = dataPath()
     if (!existsSync(file)) return
+    const parsed = this.parse(file)
+    if (parsed) {
+      this.state = parsed
+      return
+    }
+    // Never overwrite a file we couldn't read: set it aside and fall back to
+    // the backup written before the last successful save.
+    const aside = file.replace(/\.json$/, `.corrupt-${Date.now()}.json`)
     try {
-      const raw = JSON.parse(readFileSync(file, 'utf-8')) as Partial<PersistedState>
+      renameSync(file, aside)
+      console.error(`Data file unreadable; moved to ${aside}`)
+    } catch (err) {
+      console.error('Could not move unreadable data file:', err)
+    }
+    const backup = existsSync(file + '.bak') ? this.parse(file + '.bak') : null
+    if (backup) {
+      this.state = backup
+      console.warn('Restored data from backup.')
+    }
+  }
+
+  private parse(path: string): PersistedState | null {
+    try {
+      const raw = JSON.parse(readFileSync(path, 'utf-8')) as Partial<PersistedState>
       const defaults = defaultData()
-      this.state = {
+      return {
         data: {
           ...defaults,
           ...raw.data,
           streak: { ...defaults.streak, ...raw.data?.streak },
           settings: { ...defaults.settings, ...raw.data?.settings },
-          caught: raw.data?.caught ?? {}
+          caught: raw.data?.caught ?? {},
+          sessionLog: (raw.data?.sessionLog ?? []).map((e) => ({ ...e, topicId: e.topicId ?? null }))
         },
         activeSession: raw.activeSession ?? null
       }
     } catch (err) {
-      console.error('Failed to load data file, starting fresh:', err)
+      console.error(`Failed to read ${path}:`, err)
+      return null
     }
   }
 
   save(): void {
     const file = dataPath()
     const tmp = file + '.tmp'
-    writeFileSync(tmp, JSON.stringify(this.state, null, 2), 'utf-8')
+    const fd = openSync(tmp, 'w')
+    try {
+      writeSync(fd, JSON.stringify(this.state, null, 2))
+      fsyncSync(fd)
+    } finally {
+      closeSync(fd)
+    }
+    if (existsSync(file)) copyFileSync(file, file + '.bak')
     renameSync(tmp, file)
   }
 

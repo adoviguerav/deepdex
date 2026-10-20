@@ -1,8 +1,7 @@
 import { execFile } from 'child_process'
-import { app } from 'electron'
-import { readFileSync, writeFileSync } from 'fs'
-import { join } from 'path'
+import { readFileSync } from 'fs'
 import { promisify } from 'util'
+import { expandDomain, normalizeDomain } from '../shared/domains'
 
 const execFileP = promisify(execFile)
 
@@ -19,77 +18,87 @@ async function adminShell(cmd: string): Promise<void> {
   ])
 }
 
-function stripCmd(): string {
-  return `/usr/bin/sed -i '' '/${START}/,/${END}/d' ${HOSTS}`
-}
+const STRIP = `/usr/bin/sed -i '' '/${START}/,/${END}/d' ${HOSTS}`
+const FLUSH = `{ /usr/bin/dscacheutil -flushcache; /usr/bin/killall -HUP mDNSResponder; true; }`
 
-function flushCmd(): string {
-  return `/usr/bin/dscacheutil -flushcache; /usr/bin/killall -HUP mDNSResponder || true`
-}
-
-function blockLines(domains: string[]): string {
-  const lines: string[] = [START]
+/**
+ * The hosts lines for a blocklist. Every hostname is validated against a
+ * strict pattern, so the lines are safe inside single quotes in a root shell.
+ */
+export function blockLines(domains: string[]): string[] {
+  const lines = [START]
+  const seen = new Set<string>()
   for (const raw of domains) {
-    const domain = raw.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim()
+    const domain = normalizeDomain(raw)
     if (!domain) continue
-    const variants = domain.startsWith('www.') ? [domain] : [domain, `www.${domain}`]
-    for (const v of variants) {
-      lines.push(`127.0.0.1 ${v}`)
-      lines.push(`::1 ${v}`)
+    for (const host of expandDomain(domain)) {
+      if (seen.has(host)) continue
+      seen.add(host)
+      lines.push(`127.0.0.1 ${host}`, `::1 ${host}`)
     }
   }
   lines.push(END)
-  return lines.join('\n') + '\n'
+  return lines
 }
 
 /**
  * Blocks domains system-wide by appending a marked section to /etc/hosts and
- * flushing the DNS cache. Engage/release each show one admin prompt. Note:
- * already-open connections survive until the page reloads.
+ * flushing the DNS cache. Engage/release each show one admin prompt.
+ * Operations run strictly one after another, so a slow password dialog can
+ * never interleave an engage with a release. Already-open connections survive
+ * until the page reloads.
  */
 export class HostsBlocker {
-  /** True when the hosts file currently carries our block (best effort). */
+  /** True when the hosts file carries our block (best effort). */
   active = false
+  private queue: Promise<unknown> = Promise.resolve()
 
-  async engage(domains: string[]): Promise<boolean> {
-    if (process.platform !== 'darwin' || domains.length === 0) return false
-    const tmpFile = join(app.getPath('temp'), 'deepdex-hosts-block.txt')
-    writeFileSync(tmpFile, blockLines(domains), 'utf-8')
-    try {
-      await adminShell(`${stripCmd()}; /bin/cat '${tmpFile}' >> ${HOSTS}; ${flushCmd()}`)
-      this.active = true
-      return true
-    } catch (err) {
-      // Most likely the user cancelled the password dialog.
-      console.error('Hosts block failed:', err)
-      return false
-    }
+  private run<T>(op: () => Promise<T>): Promise<T> {
+    const next = this.queue.then(op, op)
+    this.queue = next.catch(() => undefined)
+    return next
   }
 
-  async release(): Promise<void> {
-    if (process.platform !== 'darwin') return
-    if (!this.active && !this.hasOrphanBlock()) return
-    try {
-      await adminShell(`${stripCmd()}; ${flushCmd()}`)
-      this.active = false
-    } catch (err) {
-      console.error('Hosts release failed (will be cleaned on next launch):', err)
-    }
+  /** Resolves true when the block is in place, false if cancelled or failed. */
+  engage(domains: string[]): Promise<boolean> {
+    return this.run(async () => {
+      const lines = blockLines(domains)
+      if (process.platform !== 'darwin' || lines.length <= 2) return false
+      const quoted = lines.map((l) => `'${l}'`).join(' ')
+      try {
+        await adminShell(`${STRIP} && /usr/bin/printf '%s\\n' ${quoted} >> ${HOSTS} && ${FLUSH}`)
+        this.active = true
+        return true
+      } catch (err) {
+        // Most likely the user cancelled the password dialog.
+        console.error('Hosts block failed:', err)
+        return false
+      }
+    })
   }
 
-  /** A block left behind by a crash/cancelled release. */
-  hasOrphanBlock(): boolean {
+  /** Resolves true when no block remains afterwards. */
+  release(): Promise<boolean> {
+    return this.run(async () => {
+      if (process.platform !== 'darwin') return true
+      if (!this.active && !this.hasBlock()) return true
+      try {
+        await adminShell(`${STRIP} && ${FLUSH}`)
+        this.active = false
+        return true
+      } catch (err) {
+        console.error('Hosts release failed:', err)
+        return !this.hasBlock()
+      }
+    })
+  }
+
+  /** Whether /etc/hosts currently contains a DeepDex section. */
+  hasBlock(): boolean {
     try {
       return readFileSync(HOSTS, 'utf-8').includes(START)
     } catch {
       return false
-    }
-  }
-
-  async cleanupOrphan(): Promise<void> {
-    if (process.platform === 'darwin' && this.hasOrphanBlock()) {
-      console.warn('Found leftover hosts block from a previous run; removing it.')
-      await this.release()
     }
   }
 }

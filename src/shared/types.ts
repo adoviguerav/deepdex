@@ -2,6 +2,8 @@ import type { PokeType } from './pokedex'
 
 export type SessionPhase = 'idle' | 'running'
 
+export type WebBlockState = 'pending' | 'on' | 'off' | 'none'
+
 export type EggTier = 'common' | 'rare' | 'superrare'
 
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'legendary'
@@ -13,8 +15,10 @@ export interface SessionState {
   remainingSec: number
   blockedAttempts: number
   eggTier: EggTier | null
-  /** True while the /etc/hosts web block is in place for this session. */
-  webBlockActive: boolean
+  /** Web blocking: waiting for the password, in place, not in place, or nothing to block. */
+  webBlock: WebBlockState
+  /** True when macOS refuses DeepDex permission to close apps. */
+  appBlockIssue: boolean
   topicId: string | null
   topicName: string | null
 }
@@ -101,6 +105,27 @@ export function localDay(date: Date): string {
   const m = String(date.getMonth() + 1).padStart(2, '0')
   const d = String(date.getDate()).padStart(2, '0')
   return `${y}-${m}-${d}`
+}
+
+/** Calendar days from day key `a` to day key `b` (YYYY-MM-DD), immune to DST. */
+export function daysBetween(a: string, b: string): number {
+  const toUtc = (key: string): number => {
+    const [y, m, d] = key.split('-').map(Number)
+    return Date.UTC(y, m - 1, d)
+  }
+  return Math.round((toUtc(b) - toUtc(a)) / 86400000)
+}
+
+/**
+ * The streak as it stands today: stored streaks only update when a session
+ * completes, so a streak whose last day is too far back is already broken.
+ */
+export function displayStreak(streak: StreakState, now: Date = new Date()): number {
+  if (!streak.lastDay) return 0
+  const gap = daysBetween(streak.lastDay, localDay(now))
+  if (gap <= 1) return streak.current
+  if (gap === 2 && streak.shields > 0) return streak.current
+  return 0
 }
 
 /** XP required to reach a given trainer level (cumulative). Level 1 = 0 XP. */

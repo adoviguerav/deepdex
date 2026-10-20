@@ -1,8 +1,10 @@
-import { BrowserWindow, dialog, ipcMain } from 'electron'
+import { BrowserWindow, dialog, ipcMain, Notification } from 'electron'
 import { writeFileSync } from 'fs'
+import { normalizeDomain } from '../shared/domains'
 import { ALL_TYPES, TYPE_LABELS_ES, type PokeType } from '../shared/pokedex'
 import type { CompletionResult, GameData, SessionState, Settings } from '../shared/types'
 import { localDay } from '../shared/types'
+import type { HostsBlocker } from './hostsBlocker'
 import type { SessionEngine } from './session'
 import type { Store } from './store'
 
@@ -57,7 +59,36 @@ function buildExport(data: GameData): string {
   return lines.join('\n') + '\n'
 }
 
-export function registerIpc(store: Store, engine: SessionEngine, getWindow: () => BrowserWindow | null): void {
+export interface IpcContext {
+  store: Store
+  engine: SessionEngine
+  hostsBlocker: HostsBlocker
+  getWindow: () => BrowserWindow | null
+  showWindow: () => BrowserWindow
+  /** Asks for the admin password again to block websites in the running session. */
+  retryWeb: () => Promise<void>
+}
+
+export function registerIpc({ store, engine, hostsBlocker, getWindow, showWindow, retryWeb }: IpcContext): void {
+  // Kept until the window confirms it showed the hatch, so closing the window
+  // during a session never loses the result.
+  let pendingResult: CompletionResult | null = null
+
+  ipcMain.handle('result:pending', () => pendingResult)
+  ipcMain.handle('result:ack', () => {
+    pendingResult = null
+  })
+  ipcMain.handle('hosts:status', () => ({ lingering: !engine.isRunning && hostsBlocker.hasBlock() }))
+  ipcMain.handle('hosts:release', async () => {
+    if (engine.isRunning) return { lingering: false }
+    await hostsBlocker.release()
+    return { lingering: hostsBlocker.hasBlock() }
+  })
+  ipcMain.handle('hosts:retry', async () => {
+    if (engine.isRunning && engine.getState().webBlock === 'off') await retryWeb()
+    return engine.getState()
+  })
+
   ipcMain.handle('session:start', (_event, durationMin: number, topicId: string | null) =>
     engine.start(durationMin, topicId ?? null)
   )
@@ -111,9 +142,8 @@ export function registerIpc(store: Store, engine: SessionEngine, getWindow: () =
       settings.blocklistApps = partial.blocklistApps.map((s) => String(s).trim()).filter(Boolean)
     }
     if (Array.isArray(partial.blocklistDomains)) {
-      settings.blocklistDomains = partial.blocklistDomains
-        .map((s) => String(s).trim().toLowerCase())
-        .filter(Boolean)
+      const valid = partial.blocklistDomains.map((d) => normalizeDomain(String(d))).filter((d): d is string => d !== null)
+      settings.blocklistDomains = [...new Set(valid)]
     }
     if (typeof partial.customDurationMin === 'number' && Number.isFinite(partial.customDurationMin)) {
       settings.customDurationMin = Math.max(10, Math.min(240, Math.round(partial.customDurationMin)))
@@ -126,6 +156,18 @@ export function registerIpc(store: Store, engine: SessionEngine, getWindow: () =
     getWindow()?.webContents.send('session:update', state)
   })
   engine.on('completed', (result: CompletionResult) => {
+    pendingResult = result
     getWindow()?.webContents.send('session:completed', result)
+    if (Notification.isSupported()) {
+      const hatch = result.hatch
+      const notification = new Notification({
+        title: '¡Sesión completada!',
+        body: hatch
+          ? `Ha nacido ${hatch.name}${hatch.shiny ? ' ✨ shiny' : ''}. +${result.xpGained} XP`
+          : `+${result.xpGained} XP`
+      })
+      notification.on('click', () => showWindow())
+      notification.show()
+    }
   })
 }

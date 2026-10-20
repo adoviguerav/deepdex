@@ -16,9 +16,8 @@ import type {
   StreakState,
   Topic
 } from '../shared/types'
-import { levelForXp, localDay } from '../shared/types'
+import { daysBetween, levelForXp, localDay } from '../shared/types'
 
-const DAY_MS = 24 * 60 * 60 * 1000
 const MAX_SHIELDS = 2
 const MAX_LOG_ENTRIES = 2000
 /** Chance that a hatch is drawn from the topic's type pool (when non-empty). */
@@ -27,11 +26,10 @@ const TYPE_BIAS = 0.6
 function updateStreak(streak: StreakState, now: Date): void {
   const today = localDay(now)
   if (streak.lastDay === today) return
-  const yesterday = localDay(new Date(now.getTime() - DAY_MS))
-  const dayBefore = localDay(new Date(now.getTime() - 2 * DAY_MS))
-  if (streak.lastDay === yesterday) {
+  const gap = streak.lastDay ? daysBetween(streak.lastDay, today) : Infinity
+  if (gap === 1) {
     streak.current += 1
-  } else if (streak.lastDay === dayBefore && streak.shields > 0) {
+  } else if (gap === 2 && streak.shields > 0) {
     // One missed day: a shield saves the streak instead of resetting it.
     streak.shields -= 1
     streak.current += 1

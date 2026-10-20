@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ALL_TYPES, nameOf, TYPE_LABELS_ES, type PokeType } from '../../../shared/pokedex'
 import type { GameData } from '../../../shared/types'
-import { eggTierForDuration, levelForXp, localDay, xpForLevel } from '../../../shared/types'
+import { displayStreak, eggTierForDuration, levelForXp, localDay, xpForLevel } from '../../../shared/types'
 import Egg from '../components/Egg'
 import Sprite from '../components/Sprite'
 
@@ -55,6 +55,28 @@ export default function Home({
     })
   }
 
+  const [lingering, setLingering] = useState(false)
+  const [releasing, setReleasing] = useState(false)
+
+  useEffect(() => {
+    const refresh = (): void => {
+      void window.deepdex.getHostsStatus().then((st) => setLingering(st.lingering))
+    }
+    refresh()
+    return window.deepdex.onHostsChanged(refresh)
+  }, [])
+
+  const releaseHosts = (): void => {
+    setReleasing(true)
+    void window.deepdex
+      .releaseHosts()
+      .then((st) => setLingering(st.lingering))
+      .finally(() => setReleasing(false))
+  }
+
+  const appsList = data.settings.blocklistApps
+  const domainCount = data.settings.blocklistDomains.length
+
   const start = (): void => {
     if (usingCustom) {
       void window.deepdex.updateSettings({ customDurationMin: effectiveDuration })
@@ -64,6 +86,17 @@ export default function Home({
 
   return (
     <div className="home">
+      {lingering && (
+        <div className="panel hosts-banner" role="alert">
+          <span>
+            Las webs siguen bloqueadas aunque no hay ninguna sesión (se canceló la contraseña al
+            terminar).
+          </span>
+          <button className="preset" onClick={releaseHosts} disabled={releasing}>
+            {releasing ? 'ESPERANDO CONTRASEÑA…' : 'DESBLOQUEAR WEBS'}
+          </button>
+        </div>
+      )}
       <header className="home-header">
         <div className="header-main">
           {data.companionId && data.caught[data.companionId] && (
@@ -87,7 +120,7 @@ export default function Home({
               <span>⏱ {hours}h {minutes}m</span>
               <span>HOY {Math.floor(todayMin / 60)}h {todayMin % 60}m</span>
               <span>
-                🔥 {data.streak.current}
+                🔥 {displayStreak(data.streak)}
                 {data.streak.shields > 0 && ` 🛡×${data.streak.shields}`}
               </span>
             </div>
@@ -200,6 +233,10 @@ export default function Home({
       <button className="start-btn" onClick={start}>
         ▶ EMPEZAR FOCO ({effectiveDuration} MIN)
       </button>
+      <div className="start-note">
+        {appsList.length > 0 ? `Se cerrarán: ${appsList.join(', ')}` : 'No hay apps en la lista negra'}
+        {domainCount > 0 && ` · ${domainCount} webs bloqueadas (pedirá tu contraseña)`}
+      </div>
     </div>
   )
 }

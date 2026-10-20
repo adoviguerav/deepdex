@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { SessionState } from '../../../shared/types'
 import Egg from '../components/Egg'
 
@@ -23,21 +23,43 @@ export default function SessionScreen({
   const [step, setStep] = useState<EmergencyStep>('closed')
   const [phrase, setPhrase] = useState('')
   const [countdown, setCountdown] = useState(EMERGENCY_WAIT_SEC)
+  const [retrying, setRetrying] = useState(false)
+  const deadline = useRef(0)
+  const onAbortedRef = useRef(onAborted)
+  onAbortedRef.current = onAborted
 
+  // Counts against a fixed deadline: the timer ticks re-render this screen
+  // every second and must not restart the countdown.
   useEffect(() => {
     if (step !== 'countdown') return
-    if (countdown <= 0) {
-      void window.deepdex.abortSession().then(onAborted)
-      return
-    }
-    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000)
-    return () => clearTimeout(timer)
-  }, [step, countdown, onAborted])
+    const id = setInterval(() => {
+      const left = Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000))
+      setCountdown(left)
+      if (left === 0) {
+        clearInterval(id)
+        void window.deepdex.abortSession().then(() => onAbortedRef.current())
+      }
+    }, 250)
+    return () => clearInterval(id)
+  }, [step])
+
+  useEffect(() => window.deepdex.onOpenEmergency(() => setStep((s) => (s === 'closed' ? 'phrase' : s))), [])
+
+  const startCountdown = (): void => {
+    deadline.current = Date.now() + EMERGENCY_WAIT_SEC * 1000
+    setCountdown(EMERGENCY_WAIT_SEC)
+    setStep('countdown')
+  }
 
   const closeEmergency = (): void => {
     setStep('closed')
     setPhrase('')
     setCountdown(EMERGENCY_WAIT_SEC)
+  }
+
+  const retryWeb = (): void => {
+    setRetrying(true)
+    void window.deepdex.retryWebBlock().finally(() => setRetrying(false))
   }
 
   const progress =
@@ -64,9 +86,24 @@ export default function SessionScreen({
             ? `INTENTOS BLOQUEADOS: ${session.blockedAttempts}`
             : 'TODO EN CALMA'}
         </span>
-        <span className={session.webBlockActive ? 'web-block on' : 'web-block'}>
-          {session.webBlockActive ? '🛡 WEBS BLOQUEADAS' : '⚠ WEBS SIN BLOQUEAR'}
-        </span>
+        {session.webBlock === 'pending' && (
+          <span className="web-block">Escribe tu contraseña de macOS para bloquear las webs…</span>
+        )}
+        {session.webBlock === 'on' && <span className="web-block on">🛡 WEBS BLOQUEADAS</span>}
+        {session.webBlock === 'off' && (
+          <>
+            <span className="web-block">⚠ WEBS SIN BLOQUEAR (cancelaste la contraseña)</span>
+            <button className="retry-btn" onClick={retryWeb} disabled={retrying}>
+              {retrying ? 'ESPERANDO CONTRASEÑA…' : 'BLOQUEAR WEBS AHORA'}
+            </button>
+          </>
+        )}
+        {session.appBlockIssue && (
+          <span className="web-block">
+            ⚠ macOS no deja a DeepDex cerrar apps. Actívalo en Ajustes del Sistema → Privacidad y
+            seguridad → Automatización.
+          </span>
+        )}
       </div>
       <button className="emergency-btn" onClick={() => setStep('phrase')}>
         ⚠ EMERGENCIA
@@ -98,9 +135,9 @@ export default function SessionScreen({
                   <button
                     className="preset danger"
                     disabled={phrase.trim().toLowerCase() !== EMERGENCY_PHRASE}
-                    onClick={() => setStep('countdown')}
+                    onClick={startCountdown}
                   >
-                    CONTINUAR
+                    SÍ, ABORTAR
                   </button>
                 </div>
               </>
