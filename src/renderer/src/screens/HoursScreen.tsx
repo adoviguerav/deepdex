@@ -6,10 +6,10 @@ import TypeChip from '../components/TypeChip'
 
 const WEEKDAY_INITIALS = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
 const HEAT_STEPS = [
-  { min: 1, color: '#d6e6f5', label: '<30m' },
-  { min: 30, color: '#93bfe6', label: '30m' },
-  { min: 90, color: '#3d86c9', label: '1h30' },
-  { min: 180, color: '#1d4f86', label: '3h+' }
+  { min: 1, color: '#cfcec8', label: '<30m' },
+  { min: 30, color: '#9a9994', label: '30m' },
+  { min: 90, color: '#56575b', label: '1h30' },
+  { min: 180, color: '#111214', label: '3h+' }
 ]
 
 function dayLabel(day: string): string {

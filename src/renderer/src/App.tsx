@@ -14,7 +14,7 @@ const NAV: { view: View; label: string }[] = [
   { view: 'home', label: 'Inicio' },
   { view: 'hours', label: 'Horas' },
   { view: 'pokedex', label: 'Pokédex' },
-  { view: 'trainer', label: 'Entrenador' },
+  { view: 'trainer', label: 'Ficha' },
   { view: 'settings', label: 'Ajustes' }
 ]
 
@@ -68,6 +68,13 @@ export default function App(): JSX.Element {
 
   return (
     <div className="app">
+      <header className="topbar">
+        <span className="lens" aria-hidden="true" />
+        <span className="wordmark">DeepDex</span>
+        <span className="topbar-meta">
+          {Object.keys(data.caught).length} registrados
+        </span>
+      </header>
       <main className="app-content">
         {view === 'home' && <Home data={data} onDataChanged={setData} />}
         {view === 'hours' && <HoursScreen data={data} onDataChanged={setData} />}

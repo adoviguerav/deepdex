@@ -24,6 +24,7 @@ export default function TrainerScreen({ data }: { data: GameData }): JSX.Element
   return (
     <div className="trainer">
       <section className="card">
+        <h2 className="card-title">Nivel de entrenador</h2>
         <div className="trainer-level">
           <span className="pixel level-big">NV.{level}</span>
           <span className="muted">

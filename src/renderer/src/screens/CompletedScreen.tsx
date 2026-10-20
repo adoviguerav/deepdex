@@ -58,7 +58,7 @@ export default function CompletedScreen({
     const crack = phase === 'crack1' ? 1 : phase === 'crack2' || phase === 'flash' ? 2 : 0
     return (
       <button className="app hatch-screen" onClick={() => setPhase('revealed')} aria-label="Ver qué ha nacido">
-        <div className="hatch-title">¡Oh! El huevo se mueve…</div>
+        <div className="hatch-title">¿Eh…?</div>
         <div className={`incubator incubator-lg hatch-egg hatch-${phase}`}>
           <Egg tier={result.eggTier} crack={crack} scale={5} motion="hatching" />
         </div>
@@ -73,19 +73,23 @@ export default function CompletedScreen({
       <div className="completed-body">
         {hatch ? (
           <>
-            <div className="completed-kicker">Sesión completada</div>
-            <h1 className="completed-title">
-              {hatch.shiny ? `¡${hatch.name} shiny!` : `¡Ha nacido ${hatch.name}!`}
-            </h1>
+            <div className="completed-kicker">Sesión completada · ¡Ha nacido!</div>
             <div className={`hatch-reveal rarity-${hatch.rarity}${hatch.shiny ? ' shiny' : ''}`}>
               <Sprite id={hatch.pokemonId} shiny={hatch.shiny} size={192} alt={hatch.name} />
+              {hatch.isNew && <span className="dex-stamp">Registrado</span>}
+            </div>
+            <div className="species-line">
+              <span className="species-number">Nº {String(hatch.pokemonId).padStart(3, '0')}</span>
+              <h1 className="completed-title">
+                {hatch.name}
+                {hatch.shiny && <span className="shiny-mark"> ✦ shiny</span>}
+              </h1>
             </div>
             <div className="hatch-meta">
               {typesOf(hatch.pokemonId).map((t) => (
                 <TypeChip key={t} type={t} />
               ))}
               <span className={`rarity-tag rarity-${hatch.rarity}`}>{RARITY_LABEL[hatch.rarity]}</span>
-              {hatch.isNew && <span className="new-tag">Nuevo en la Pokédex</span>}
             </div>
           </>
         ) : (

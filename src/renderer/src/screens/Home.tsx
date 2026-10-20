@@ -98,7 +98,8 @@ export default function Home({
         </div>
       )}
 
-      <header className="trainer-card">
+      <header className="card trainer-card">
+        <h2 className="card-title">Entrenador</h2>
         {companion && (
           <div className="companion" title={nameOf(companion)}>
             <Sprite id={companion} shiny={data.caught[companion].shiny} size={96} alt={nameOf(companion)} />
@@ -130,11 +131,16 @@ export default function Home({
       </header>
 
       <section className="card session-card">
-        <div className="egg-stage">
-          <Egg tier={tier} />
+        <h2 className="card-title">Nueva sesión</h2>
+        <div className="egg-row">
+          <div className="egg-stage">
+            <Egg tier={tier} scale={3} />
+          </div>
+          <div className="egg-text">
+            <div className="egg-label">{TIER_INFO[tier].label}</div>
+            <div className="egg-hint">{TIER_INFO[tier].hint}</div>
+          </div>
         </div>
-        <div className="egg-label">{TIER_INFO[tier].label}</div>
-        <div className="egg-hint">{TIER_INFO[tier].hint}</div>
 
         <div className="field">
           <div className="field-label">Duración</div>
@@ -240,7 +246,8 @@ export default function Home({
       </section>
 
       <button className="btn btn-primary btn-start" onClick={start}>
-        Empezar sesión · {effectiveDuration} min
+        <span>Empezar sesión</span>
+        <span className="btn-meta">{effectiveDuration} min ▸</span>
       </button>
       <div className="start-note">
         {appsList.length > 0 ? `Se cerrarán ${appsList.join(', ')}` : 'No hay apps en la lista negra'}

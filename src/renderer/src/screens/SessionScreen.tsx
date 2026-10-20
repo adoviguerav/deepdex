@@ -69,7 +69,10 @@ export default function SessionScreen({
     <div className="app session-screen">
       <div className="session-main">
         <div className="session-top">
-          <span className="session-kicker">Modo foco</span>
+          <span className="session-kicker">
+            <span className="lens on" aria-hidden="true" />
+            Modo foco
+          </span>
           {session.topicName && <span className="session-topic">{session.topicName}</span>}
         </div>
         <div className="timer pixel" aria-label={`Quedan ${formatTime(session.remainingSec)}`}>
