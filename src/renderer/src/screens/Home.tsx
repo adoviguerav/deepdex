@@ -46,7 +46,8 @@ export default function Home({
     .filter((e) => e.completed && localDay(new Date(e.startedAt)) === today)
     .reduce((sum, e) => sum + e.durationMin, 0)
 
-  const selectedTopic = data.topics.find((t) => t.id === topicId) ?? null
+  const topics = data.topics.filter((t) => !t.deleted)
+  const selectedTopic = topics.find((t) => t.id === topicId) ?? null
   const companion = data.companionId && data.caught[data.companionId] ? data.companionId : null
 
   useEffect(() => {
@@ -191,7 +192,7 @@ export default function Home({
             >
               Sin tema
             </button>
-            {data.topics.map((topic) => (
+            {topics.map((topic) => (
               <button
                 key={topic.id}
                 className={topicId === topic.id ? 'chip active' : 'chip'}

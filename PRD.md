@@ -159,6 +159,14 @@ Petición: una interfaz más minimalista, con colores de Pokémon y huevos que s
 - **Sprites a escala entera** (96 y 192 px) para que no salgan borrosos.
 - **Contraste.** El texto de los chips de tipo elige blanco o casi negro según el color (todos por encima de 5:1). Las medallas bloqueadas son legibles, con el emoji en gris.
 
+## 5f. App descargable y progreso compartido (2026-10-20)
+
+El usuario quiere DeepDex también en el Mac del trabajo (tiene permisos de administrador), sin clonar el repo con su cuenta de GitHub del trabajo y con el mismo progreso en ambos ordenadores. Una web quedó descartada: sin bloqueo no tiene sentido.
+
+- **Descarga:** GitHub Actions compila en un Mac de GitHub dos `.dmg` (Apple Silicon e Intel) al empujar una etiqueta `v*`, los firma ad hoc (sin cuenta de Apple, macOS rechazaría la app en Apple Silicon) y los publica en Releases.
+- **Sincronización:** Supabase (gratuito), una fila por cuenta con todo el progreso en JSON y una regla de seguridad que limita cada cuenta a su fila. El usuario crea el proyecto y pega URL y clave en Ajustes; no hay secretos en el repo.
+- **Modelo fusionable:** cada sesión del historial lleva id, hora de fin y el Pokémon que eclosionó. XP, horas, Pokédex, racha y medallas se recalculan desde el historial (`rebuildFromLog`), y fusionar dos ordenadores es unir sus historiales (`mergeGameData`). Temas con marca de borrado y fecha de edición; ajustes y compañero, el último cambio gana. Se elimina el tope de 2000 sesiones.
+
 ## 6. Fuera de alcance (por ahora)
 
 - Bloqueo a nivel de red/extensión de navegador (hosts es suficiente para el uso personal).

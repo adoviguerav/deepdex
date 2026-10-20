@@ -4,25 +4,48 @@ App personal de deep work para macOS con temática Pokémon. Inicias una sesión
 
 El diseño completo está en [PRD.md](PRD.md).
 
-## Empezar a usarla
+## Instalar
 
-Necesitas un Mac con [Node.js](https://nodejs.org) 18 o superior (instala la versión LTS).
+No hace falta git ni Node: cada versión se compila sola en GitHub.
 
-```bash
-git clone https://github.com/adoviguerav/deepdex.git
-cd deepdex
-npm install
-npm run dist
-```
+1. Abre la página de [versiones (Releases)](https://github.com/adoviguerav/deepdex/releases). El repositorio es privado: si el navegador tiene abierta otra cuenta de GitHub (la del trabajo), ábrela en una ventana privada y entra con la tuya.
+2. Descarga `DeepDex-<versión>-arm64.dmg` si tu Mac tiene chip Apple (M1, M2, M3, M4) o `DeepDex-<versión>-x64.dmg` si es Intel. Lo ves en  → Acerca de este Mac.
+3. Abre el `.dmg` y arrastra DeepDex a Aplicaciones.
+4. La primera vez macOS dirá que no puede verificar al desarrollador (la app no está firmada con una cuenta de Apple). Ábrela una vez, cierra ese aviso y ve a Ajustes del Sistema → Privacidad y seguridad → «Abrir igualmente». Si prefieres Terminal: `xattr -dr com.apple.quarantine /Applications/DeepDex.app`.
 
-Eso genera `dist/DeepDex-<versión>.dmg`. Ábrelo y arrastra DeepDex a Aplicaciones. Como la app no está firmada, la primera vez ábrela con clic derecho → Abrir → Abrir.
+Para actualizar, descarga el `.dmg` nuevo y reemplaza la app. Tu progreso no se toca: vive en `~/Library/Application Support/deepdex/`.
 
-Si solo quieres probarla sin instalar, `npm run dev` la arranca directamente.
+## Progreso compartido entre ordenadores
 
-### Primera sesión
+DeepDex guarda tu progreso en una base de datos gratuita de [Supabase](https://supabase.com) para que tus Pokémon, horas y racha sean los mismos en casa y en el trabajo. Se configura una sola vez:
+
+1. Crea una cuenta en Supabase y un proyecto nuevo (plan gratuito; la región da igual, mejor una europea).
+2. En el proyecto, abre **SQL Editor**, pega esto y pulsa **Run**:
+
+   ```sql
+   create table public.deepdex_saves (
+     user_id uuid primary key references auth.users (id) on delete cascade,
+     data jsonb not null,
+     updated_at timestamptz not null default now()
+   );
+   alter table public.deepdex_saves enable row level security;
+   create policy "Cada usuario solo ve su progreso" on public.deepdex_saves
+     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+   ```
+
+3. En **Authentication → Sign In / Providers → Email**, desactiva **Confirm email** (es un proyecto solo tuyo y así no hace falta confirmar por correo).
+4. En **Project Settings → API** copia la **Project URL** y la clave **anon public**.
+5. En DeepDex, **Ajustes → Sincronización**: pega la URL y la clave, pulsa «Guardar proyecto», escribe tu email y una contraseña y pulsa «Crear cuenta».
+6. En el otro Mac: los mismos pasos 5 con la misma URL, clave, email y contraseña, pero pulsando «Entrar».
+
+Cómo se sincroniza: al abrir la app, al terminar o abortar cada sesión, tras cada cambio y cada 10 minutos. Cada sesión queda en un historial con su identificador y los totales se recalculan a partir de él, así que si usas los dos Macs sin conexión, al reconectar se suman las sesiones de ambos sin perder ni duplicar nada. Para los ajustes y el compañero gana el último cambio.
+
+La clave «anon public» puede estar en la app sin problema: la regla del paso 2 hace que cada cuenta solo pueda leer y escribir su propio progreso.
+
+## Primera sesión
 
 1. En **Ajustes**, revisa las apps y webs que quieres bloquear. Los nombres de apps deben coincidir con el de la app tal como aparece en el Dock (por ejemplo `WhatsApp`).
-2. En **Inicio**, elige un tema (o créalo con «+ NUEVO»), la duración y pulsa **EMPEZAR FOCO**. Debajo del botón ves qué se va a cerrar.
+2. En **Inicio**, elige un tema (o créalo con «+ Nuevo»), la duración y pulsa **Empezar sesión**. Debajo del botón ves qué se va a cerrar.
 3. macOS te pedirá dos cosas la primera vez:
    - **Permiso de Automatización** para que DeepDex controle «System Events». Acéptalo: sin él no puede cerrar apps (la pantalla de sesión te avisa si falta). Si lo denegaste, actívalo en Ajustes del Sistema → Privacidad y seguridad → Automatización → DeepDex.
    - **Tu contraseña de administrador** para bloquear las webs. Se pide al empezar y al terminar cada sesión. Si la cancelas al empezar, la sesión sigue solo con apps bloqueadas y puedes reintentarlo con «BLOQUEAR WEBS AHORA». Si la cancelas al terminar, Inicio te ofrece desbloquear las webs.
@@ -36,8 +59,10 @@ npm run dev        # arranca Electron con recarga en caliente
 npm run typecheck  # comprobación de tipos (main + renderer)
 npm test           # tests de lógica (rachas, eclosiones, estadísticas, dominios)
 npm run build      # build de producción en out/
-npm run dist       # DMG para macOS en dist/
+npm run dist       # DMG para macOS en dist/ (solo en un Mac)
 ```
+
+Para publicar una versión: sube `version` en `package.json`, haz commit y empuja una etiqueta (`git tag v0.2.0 && git push origin v0.2.0`). El workflow `.github/workflows/release.yml` compila los dos `.dmg` en un Mac de GitHub, los firma ad hoc y los publica en Releases.
 
 ## Cómo funciona el bloqueo
 

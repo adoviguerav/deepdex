@@ -1,6 +1,9 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 import type { PokeType } from '../shared/pokedex'
 import type { CompletionResult, GameData, SessionState, Settings } from '../shared/types'
+import type { SyncStatus } from '../main/sync'
+
+export type { SyncStatus }
 
 export interface HostsStatus {
   /** Websites still blocked although no session is running. */
@@ -22,6 +25,14 @@ export interface DeepdexApi {
   getHostsStatus(): Promise<HostsStatus>
   releaseHosts(): Promise<HostsStatus>
   retryWebBlock(): Promise<SessionState>
+  getSyncStatus(): Promise<SyncStatus>
+  configureSync(url: string, anonKey: string): Promise<SyncStatus>
+  signIn(email: string, password: string): Promise<SyncStatus>
+  signUp(email: string, password: string): Promise<SyncStatus>
+  signOut(): Promise<SyncStatus>
+  syncNow(): Promise<SyncStatus>
+  onSyncStatus(cb: (status: SyncStatus) => void): () => void
+  onDataChanged(cb: () => void): () => void
   onSessionUpdate(cb: (state: SessionState) => void): () => void
   onOpenEmergency(cb: () => void): () => void
   onHostsChanged(cb: () => void): () => void
@@ -49,6 +60,14 @@ const api: DeepdexApi = {
   getHostsStatus: () => ipcRenderer.invoke('hosts:status'),
   releaseHosts: () => ipcRenderer.invoke('hosts:release'),
   retryWebBlock: () => ipcRenderer.invoke('hosts:retry'),
+  getSyncStatus: () => ipcRenderer.invoke('sync:status'),
+  configureSync: (url, anonKey) => ipcRenderer.invoke('sync:configure', url, anonKey),
+  signIn: (email, password) => ipcRenderer.invoke('sync:signIn', email, password),
+  signUp: (email, password) => ipcRenderer.invoke('sync:signUp', email, password),
+  signOut: () => ipcRenderer.invoke('sync:signOut'),
+  syncNow: () => ipcRenderer.invoke('sync:now'),
+  onSyncStatus: (cb) => subscribe('sync:status', cb),
+  onDataChanged: (cb) => subscribe('data:changed', cb),
   onSessionUpdate: (cb) => subscribe('session:update', cb),
   onOpenEmergency: (cb) => subscribe('session:open-emergency', cb),
   onHostsChanged: (cb) => subscribe('hosts:changed', cb),

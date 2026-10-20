@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { GameData } from '../../../shared/types'
+import SyncCard from '../components/SyncCard'
 
 export default function SettingsScreen({
   data,
@@ -27,6 +28,7 @@ export default function SettingsScreen({
 
   return (
     <div className="settings">
+      <SyncCard />
       <section className="card">
         <h2 className="card-title">Apps bloqueadas</h2>
         <p className="settings-hint">

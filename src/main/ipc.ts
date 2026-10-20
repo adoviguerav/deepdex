@@ -3,7 +3,7 @@ import { writeFileSync } from 'fs'
 import { normalizeDomain } from '../shared/domains'
 import { ALL_TYPES, TYPE_LABELS_ES, type PokeType } from '../shared/pokedex'
 import type { CompletionResult, GameData, SessionState, Settings } from '../shared/types'
-import { localDay } from '../shared/types'
+import { localDay, newId } from '../shared/types'
 import type { HostsBlocker } from './hostsBlocker'
 import type { SessionEngine } from './session'
 import type { Store } from './store'
@@ -36,7 +36,7 @@ function buildExport(data: GameData): string {
   const sessionCount = (id: string | null): number =>
     completed.filter((e) => e.topicId === id).length
 
-  for (const topic of [...data.topics].sort((a, b) => b.totalMin - a.totalMin)) {
+  for (const topic of data.topics.filter((t) => !t.deleted).sort((a, b) => b.totalMin - a.totalMin)) {
     lines.push(
       `| ${topic.name} | ${TYPE_LABELS_ES[topic.type]} | ${formatMin(topic.totalMin)} | ${sessionCount(topic.id)} |`
     )
@@ -67,9 +67,11 @@ export interface IpcContext {
   showWindow: () => BrowserWindow
   /** Asks for the admin password again to block websites in the running session. */
   retryWeb: () => Promise<void>
+  /** Called after any local edit so progress can sync to the other computer. */
+  onLocalChange: () => void
 }
 
-export function registerIpc({ store, engine, hostsBlocker, getWindow, showWindow, retryWeb }: IpcContext): void {
+export function registerIpc({ store, engine, hostsBlocker, getWindow, showWindow, retryWeb, onLocalChange }: IpcContext): void {
   // Kept until the window confirms it showed the hatch, so closing the window
   // during a session never loses the result.
   let pendingResult: CompletionResult | null = null
@@ -98,28 +100,31 @@ export function registerIpc({ store, engine, hostsBlocker, getWindow, showWindow
   ipcMain.handle('companion:set', (_event, pokemonId: number | null) => {
     store.data.companionId =
       pokemonId !== null && store.data.caught[pokemonId] ? pokemonId : null
+    store.data.companionUpdatedAt = Date.now()
     store.save()
+    onLocalChange()
     return store.data
   })
 
   ipcMain.handle('topics:create', (_event, name: string, type: PokeType) => {
     const trimmed = String(name).trim().slice(0, 60)
     if (trimmed && ALL_TYPES.includes(type)) {
-      store.data.topics.push({
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-        name: trimmed,
-        type,
-        totalMin: 0,
-        createdAt: Date.now()
-      })
+      const now = Date.now()
+      store.data.topics.push({ id: newId(), name: trimmed, type, totalMin: 0, createdAt: now, updatedAt: now })
       store.save()
+      onLocalChange()
     }
     return store.data
   })
 
   ipcMain.handle('topics:delete', (_event, topicId: string) => {
-    store.data.topics = store.data.topics.filter((t) => t.id !== topicId)
-    store.save()
+    const topic = store.data.topics.find((t) => t.id === topicId)
+    if (topic) {
+      topic.deleted = true
+      topic.updatedAt = Date.now()
+      store.save()
+      onLocalChange()
+    }
     return store.data
   })
 
@@ -148,7 +153,9 @@ export function registerIpc({ store, engine, hostsBlocker, getWindow, showWindow
     if (typeof partial.customDurationMin === 'number' && Number.isFinite(partial.customDurationMin)) {
       settings.customDurationMin = Math.max(10, Math.min(240, Math.round(partial.customDurationMin)))
     }
+    store.data.settingsUpdatedAt = Date.now()
     store.save()
+    onLocalChange()
     return store.data
   })
 

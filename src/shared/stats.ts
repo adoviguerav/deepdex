@@ -131,6 +131,7 @@ export function computeStats(data: GameData, now: Date = new Date()): FocusStats
     weekByTopic.set(key, (weekByTopic.get(key) ?? 0) + entry.durationMin)
   }
   const topics = data.topics
+    .filter((t) => !t.deleted)
     .map((t) => ({ id: t.id, name: t.name, weekMin: weekByTopic.get(t.id) ?? 0, totalMin: t.totalMin }))
     .sort((a, b) => b.weekMin - a.weekMin || b.totalMin - a.totalMin)
 

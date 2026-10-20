@@ -1,6 +1,6 @@
 {
   "name": "deepdex",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pokémon-themed deep work app for macOS",
   "private": true,
   "main": "./out/main/index.js",
@@ -13,8 +13,7 @@
     "test": "TZ=Europe/Madrid vitest run"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@supabase/supabase-js": "^2.45.4"
   },
   "build": {
     "appId": "com.adolfo.deepdex",
@@ -29,13 +28,22 @@
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
       ],
       "identity": null,
       "extendInfo": {
         "NSAppleEventsUsageDescription": "DeepDex cierra las apps de tu lista negra mientras dura una sesión de foco."
       }
+    },
+    "afterPack": "build/afterPack.cjs",
+    "dmg": {
+      "artifactName": "DeepDex-${version}-${arch}.${ext}"
     }
   },
   "devDependencies": {
@@ -46,6 +54,8 @@
     "electron": "^31.4.0",
     "electron-builder": "^24.13.3",
     "electron-vite": "^2.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "typescript": "^5.5.4",
     "vite": "^5.4.2",
     "vitest": "^2.1.9"

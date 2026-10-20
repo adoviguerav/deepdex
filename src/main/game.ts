@@ -13,35 +13,12 @@ import type {
   GameData,
   HatchResult,
   Rarity,
-  StreakState,
   Topic
 } from '../shared/types'
-import { daysBetween, levelForXp, localDay } from '../shared/types'
+import { advanceStreak, levelForXp, localDay, newId } from '../shared/types'
 
-const MAX_SHIELDS = 2
-const MAX_LOG_ENTRIES = 2000
 /** Chance that a hatch is drawn from the topic's type pool (when non-empty). */
 const TYPE_BIAS = 0.6
-
-function updateStreak(streak: StreakState, now: Date): void {
-  const today = localDay(now)
-  if (streak.lastDay === today) return
-  const gap = streak.lastDay ? daysBetween(streak.lastDay, today) : Infinity
-  if (gap === 1) {
-    streak.current += 1
-  } else if (gap === 2 && streak.shields > 0) {
-    // One missed day: a shield saves the streak instead of resetting it.
-    streak.shields -= 1
-    streak.current += 1
-  } else {
-    streak.current = 1
-  }
-  if (streak.current > 0 && streak.current % 7 === 0) {
-    streak.shields = Math.min(MAX_SHIELDS, streak.shields + 1)
-  }
-  streak.best = Math.max(streak.best, streak.current)
-  streak.lastDay = today
-}
 
 const RARITY_ORDER: Rarity[] = ['common', 'uncommon', 'rare', 'legendary']
 
@@ -69,7 +46,8 @@ function hatch(
   data: GameData,
   tier: EggTier,
   topic: Topic | null,
-  random: () => number
+  random: () => number,
+  now: Date
 ): HatchResult {
   const rarity = rollRarity(tier, random)
   let pool = SPECIES_BY_RARITY[rarity]
@@ -85,7 +63,7 @@ function hatch(
   data.caught[pokemonId] = {
     count: (existing?.count ?? 0) + 1,
     shiny: (existing?.shiny ?? false) || shiny,
-    firstCaughtAt: existing?.firstCaughtAt ?? Date.now()
+    firstCaughtAt: existing?.firstCaughtAt ?? now.getTime()
   }
   return { pokemonId, name: nameOf(pokemonId), rarity, shiny, isNew }
 }
@@ -107,13 +85,6 @@ function refreshBadges(data: GameData): string[] {
   return newBadges
 }
 
-function appendLog(data: GameData, entry: GameData['sessionLog'][number]): void {
-  data.sessionLog.push(entry)
-  if (data.sessionLog.length > MAX_LOG_ENTRIES) {
-    data.sessionLog.splice(0, data.sessionLog.length - MAX_LOG_ENTRIES)
-  }
-}
-
 export interface CompletedSession {
   durationMin: number
   eggTier: EggTier
@@ -128,20 +99,23 @@ export function grantCompletion(
   now: Date = new Date(),
   random: () => number = Math.random
 ): CompletionResult {
-  const topic = data.topics.find((t) => t.id === session.topicId) ?? null
+  const topic = data.topics.find((t) => t.id === session.topicId && !t.deleted) ?? null
   const levelBefore = levelForXp(data.xp)
   data.xp += session.durationMin
   data.totalFocusMin += session.durationMin
   data.sessionsCompleted += 1
   if (topic) topic.totalMin += session.durationMin
-  appendLog(data, {
+  advanceStreak(data.streak, localDay(now))
+  const hatchResult = hatch(data, session.eggTier, topic, random, now)
+  data.sessionLog.push({
+    id: newId(),
     startedAt: session.startedAt,
+    endedAt: now.getTime(),
     durationMin: session.durationMin,
     topicId: topic?.id ?? null,
-    completed: true
+    completed: true,
+    hatch: { pokemonId: hatchResult.pokemonId, shiny: hatchResult.shiny }
   })
-  updateStreak(data.streak, now)
-  const hatchResult = hatch(data, session.eggTier, topic, random)
   const newBadges = refreshBadges(data)
   const levelAfter = levelForXp(data.xp)
   return {
@@ -158,15 +132,16 @@ export function grantCompletion(
 
 export function recordAbort(
   data: GameData,
-  session: { startedAt: number; elapsedMin: number; topicId: string | null } | null = null
+  session: { startedAt: number; elapsedMin: number; topicId: string | null },
+  now: Date = new Date()
 ): void {
   data.sessionsAborted += 1
-  if (session) {
-    appendLog(data, {
-      startedAt: session.startedAt,
-      durationMin: session.elapsedMin,
-      topicId: session.topicId,
-      completed: false
-    })
-  }
+  data.sessionLog.push({
+    id: newId(),
+    startedAt: session.startedAt,
+    endedAt: now.getTime(),
+    durationMin: session.elapsedMin,
+    topicId: session.topicId,
+    completed: false
+  })
 }

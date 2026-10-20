@@ -31,14 +31,29 @@ export interface Topic {
   type: PokeType
   totalMin: number
   createdAt: number
+  /** Last edit, so two synced computers agree on the newest version. */
+  updatedAt?: number
+  /** Deleted topics stay as tombstones so a sync can't bring them back. */
+  deleted?: boolean
 }
 
+/**
+ * One focus session. The log is the source of truth: XP, hours, the Pokédex,
+ * streaks and badges are all recomputed from it, which is what lets two
+ * computers merge their progress by taking the union of their logs.
+ */
 export interface SessionLogEntry {
+  /** Unique per session; older entries without one get a deterministic id. */
+  id?: string
   startedAt: number
+  /** When it completed or was aborted. */
+  endedAt?: number
   /** Planned minutes for completed sessions; elapsed minutes for aborted ones. */
   durationMin: number
   topicId: string | null
   completed: boolean
+  /** The Pokémon that hatched from this session's egg. */
+  hatch?: { pokemonId: number; shiny: boolean } | null
 }
 
 export interface CaughtRecord {
@@ -79,6 +94,9 @@ export interface GameData {
   topics: Topic[]
   sessionLog: SessionLogEntry[]
   settings: Settings
+  /** Timestamps of the last edit, so the newest wins when two computers sync. */
+  settingsUpdatedAt?: number
+  companionUpdatedAt?: number
 }
 
 export interface HatchResult {
@@ -126,6 +144,35 @@ export function displayStreak(streak: StreakState, now: Date = new Date()): numb
   if (gap <= 1) return streak.current
   if (gap === 2 && streak.shields > 0) return streak.current
   return 0
+}
+
+export const MAX_SHIELDS = 2
+
+/**
+ * Moves a streak forward to a day with a completed session: +1 for the next
+ * day, a shield covers one missed day, anything longer starts over. Every 7
+ * straight days earns a shield (max 2).
+ */
+export function advanceStreak(streak: StreakState, day: string): void {
+  if (streak.lastDay === day) return
+  const gap = streak.lastDay ? daysBetween(streak.lastDay, day) : Infinity
+  if (gap === 1) {
+    streak.current += 1
+  } else if (gap === 2 && streak.shields > 0) {
+    streak.shields -= 1
+    streak.current += 1
+  } else {
+    streak.current = 1
+  }
+  if (streak.current % 7 === 0) {
+    streak.shields = Math.min(MAX_SHIELDS, streak.shields + 1)
+  }
+  streak.best = Math.max(streak.best, streak.current)
+  streak.lastDay = day
+}
+
+export function newId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
 }
 
 /** XP required to reach a given trainer level (cumulative). Level 1 = 0 XP. */

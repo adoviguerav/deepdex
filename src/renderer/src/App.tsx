@@ -35,12 +35,15 @@ export default function App(): JSX.Element {
       }
     })
     const offUpdate = window.deepdex.onSessionUpdate(setSession)
+    // Progress merged from the other computer.
+    const offData = window.deepdex.onDataChanged(() => void window.deepdex.getData().then(setData))
     const offCompleted = window.deepdex.onSessionCompleted((res) => {
       setResult(res)
       setData(res.data)
     })
     return () => {
       offUpdate()
+      offData()
       offCompleted()
     }
   }, [])

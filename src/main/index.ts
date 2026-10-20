@@ -5,6 +5,7 @@ import { HostsBlocker } from './hostsBlocker'
 import { registerIpc } from './ipc'
 import { SessionEngine } from './session'
 import { Store } from './store'
+import { registerSyncIpc, SyncService } from './sync'
 import { createTray } from './tray'
 
 let mainWindow: BrowserWindow | null = null
@@ -108,7 +109,24 @@ app.whenReady().then(() => {
     console.warn('Found leftover hosts block from a previous run; removing it.')
     void hostsBlocker.release().then(() => mainWindow?.webContents.send('hosts:changed'))
   }
-  registerIpc({ store, engine, hostsBlocker, getWindow: () => mainWindow, showWindow, retryWeb: engageWeb })
+  const sync = new SyncService(store, () => mainWindow)
+  registerSyncIpc(sync)
+  // Sync whenever a session ends (completed or aborted).
+  let lastPhase = engine.getState().phase
+  engine.on('update', (state) => {
+    if (lastPhase === 'running' && state.phase === 'idle') sync.schedule()
+    lastPhase = state.phase
+  })
+  registerIpc({
+    store,
+    engine,
+    hostsBlocker,
+    getWindow: () => mainWindow,
+    showWindow,
+    retryWeb: engageWeb,
+    onLocalChange: () => sync.schedule()
+  })
+  void sync.init()
   createWindow()
   createTray(engine, showWindow, () => app.quit())
 

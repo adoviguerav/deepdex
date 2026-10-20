@@ -122,6 +122,12 @@ export class Store {
     return this.state.data
   }
 
+  /** Swaps in progress merged from another computer. */
+  replaceData(data: GameData): void {
+    this.state.data = data
+    this.save()
+  }
+
   get activeSession(): PersistedState['activeSession'] {
     return this.state.activeSession
   }

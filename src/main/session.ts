@@ -71,7 +71,7 @@ export class SessionEngine extends EventEmitter {
     if (this.isRunning) return this.getState()
     if (!Number.isFinite(durationMin)) return this.getState()
     const minutes = Math.max(10, Math.min(240, Math.round(durationMin)))
-    const topic = this.store.data.topics.find((t) => t.id === topicId) ?? null
+    const topic = this.store.data.topics.find((t) => t.id === topicId && !t.deleted) ?? null
     this.state = {
       phase: 'running',
       durationMin: minutes,
