@@ -11,11 +11,11 @@ import TrainerScreen from './screens/TrainerScreen'
 export type View = 'home' | 'hours' | 'pokedex' | 'trainer' | 'settings'
 
 const NAV: { view: View; label: string }[] = [
-  { view: 'home', label: 'INICIO' },
-  { view: 'hours', label: 'HORAS' },
-  { view: 'pokedex', label: 'POKÉDEX' },
-  { view: 'trainer', label: 'ENTRENA.' },
-  { view: 'settings', label: 'AJUSTES' }
+  { view: 'home', label: 'Inicio' },
+  { view: 'hours', label: 'Horas' },
+  { view: 'pokedex', label: 'Pokédex' },
+  { view: 'trainer', label: 'Entrenador' },
+  { view: 'settings', label: 'Ajustes' }
 ]
 
 export default function App(): JSX.Element {
@@ -55,7 +55,7 @@ export default function App(): JSX.Element {
   }, [])
 
   if (!data || !session) {
-    return <div className="app loading">CARGANDO…</div>
+    return <div className="app loading">Cargando…</div>
   }
 
   if (result) {
@@ -80,6 +80,7 @@ export default function App(): JSX.Element {
           <button
             key={item.view}
             className={view === item.view ? 'tab active' : 'tab'}
+            aria-current={view === item.view ? 'page' : undefined}
             onClick={() => setView(item.view)}
           >
             {item.label}

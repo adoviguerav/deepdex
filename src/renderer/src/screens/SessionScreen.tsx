@@ -67,91 +67,114 @@ export default function SessionScreen({
 
   return (
     <div className="app session-screen">
-      <div className="session-top">
-        MODO FOCO{session.topicName ? ` · ${session.topicName.toUpperCase()}` : ''}
-      </div>
-      <div className="timer">{formatTime(session.remainingSec)}</div>
-      <div className="progress-track">
-        <div className="progress-fill" style={{ width: `${Math.round(progress * 100)}%` }} />
-      </div>
-      {session.eggTier && (
-        <div className="session-egg">
-          <Egg tier={session.eggTier} wobble />
-          <div className="egg-hint">El huevo se incuba con tu foco…</div>
+      <div className="session-main">
+        <div className="session-top">
+          <span className="session-kicker">Modo foco</span>
+          {session.topicName && <span className="session-topic">{session.topicName}</span>}
         </div>
-      )}
-      <div className="block-status">
-        <span>
-          {session.blockedAttempts > 0
-            ? `INTENTOS BLOQUEADOS: ${session.blockedAttempts}`
-            : 'TODO EN CALMA'}
-        </span>
-        {session.webBlock === 'pending' && (
-          <span className="web-block">Escribe tu contraseña de macOS para bloquear las webs…</span>
+        <div className="timer pixel" aria-label={`Quedan ${formatTime(session.remainingSec)}`}>
+          {formatTime(session.remainingSec)}
+        </div>
+        <div className="meter meter-dark" aria-hidden="true">
+          <span className="meter-fill" style={{ width: `${Math.round(progress * 100)}%` }} />
+        </div>
+        {session.eggTier && (
+          <div className="session-egg">
+            <div className="incubator">
+              <Egg tier={session.eggTier} scale={4} motion="idle" />
+            </div>
+            <div className="session-hint">El huevo se incuba con tu foco</div>
+          </div>
         )}
-        {session.webBlock === 'on' && <span className="web-block on">🛡 WEBS BLOQUEADAS</span>}
+      </div>
+
+      <div className="session-status">
+        <div className="status-row">
+          <span className="status-dot ok" aria-hidden="true" />
+          {session.blockedAttempts > 0
+            ? `${session.blockedAttempts} ${session.blockedAttempts === 1 ? 'intento bloqueado' : 'intentos bloqueados'}`
+            : 'Apps bloqueadas, todo en calma'}
+        </div>
+        {session.webBlock === 'pending' && (
+          <div className="status-row">
+            <span className="status-dot wait" aria-hidden="true" />
+            Escribe tu contraseña de macOS para bloquear las webs
+          </div>
+        )}
+        {session.webBlock === 'on' && (
+          <div className="status-row">
+            <span className="status-dot ok" aria-hidden="true" />
+            Webs bloqueadas
+          </div>
+        )}
         {session.webBlock === 'off' && (
-          <>
-            <span className="web-block">⚠ WEBS SIN BLOQUEAR (cancelaste la contraseña)</span>
-            <button className="retry-btn" onClick={retryWeb} disabled={retrying}>
-              {retrying ? 'ESPERANDO CONTRASEÑA…' : 'BLOQUEAR WEBS AHORA'}
+          <div className="status-row">
+            <span className="status-dot warn" aria-hidden="true" />
+            Webs sin bloquear: cancelaste la contraseña
+            <button className="link-btn" onClick={retryWeb} disabled={retrying}>
+              {retrying ? 'Esperando…' : 'Reintentar'}
             </button>
-          </>
+          </div>
         )}
         {session.appBlockIssue && (
-          <span className="web-block">
-            ⚠ macOS no deja a DeepDex cerrar apps. Actívalo en Ajustes del Sistema → Privacidad y
-            seguridad → Automatización.
-          </span>
+          <div className="status-row">
+            <span className="status-dot warn" aria-hidden="true" />
+            macOS no deja cerrar apps. Actívalo en Ajustes del Sistema → Privacidad y seguridad →
+            Automatización.
+          </div>
         )}
       </div>
-      <button className="emergency-btn" onClick={() => setStep('phrase')}>
-        ⚠ EMERGENCIA
+
+      <button className="btn btn-ghost-danger" onClick={() => setStep('phrase')}>
+        Salida de emergencia
       </button>
 
       {step !== 'closed' && (
         <div className="modal-backdrop">
-          <div className="modal panel">
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="emergency-title">
             {step === 'phrase' && (
               <>
-                <div className="panel-title">SALIDA DE EMERGENCIA</div>
+                <h2 id="emergency-title" className="modal-title">
+                  Salida de emergencia
+                </h2>
                 <p className="modal-text">
-                  Abortar pierde el huevo y toda la XP de esta sesión. Si de verdad es una
-                  emergencia, escribe:
+                  Si abortas, pierdes el huevo y la XP de esta sesión. Si de verdad es una emergencia,
+                  escribe <strong>{EMERGENCY_PHRASE}</strong>:
                 </p>
-                <p className="modal-phrase">«{EMERGENCY_PHRASE}»</p>
                 <input
-                  className="custom-duration"
+                  className="input"
                   type="text"
                   value={phrase}
                   autoFocus
+                  aria-label="Frase de confirmación"
                   onChange={(e) => setPhrase(e.target.value)}
-                  placeholder="escribe la frase"
+                  placeholder={EMERGENCY_PHRASE}
                 />
                 <div className="modal-actions">
-                  <button className="preset" onClick={closeEmergency}>
-                    SEGUIR EN FOCO
+                  <button className="btn btn-secondary" onClick={closeEmergency}>
+                    Seguir en foco
                   </button>
                   <button
-                    className="preset danger"
+                    className="btn btn-danger"
                     disabled={phrase.trim().toLowerCase() !== EMERGENCY_PHRASE}
                     onClick={startCountdown}
                   >
-                    SÍ, ABORTAR
+                    Sí, abortar
                   </button>
                 </div>
               </>
             )}
             {step === 'countdown' && (
               <>
-                <div className="panel-title">ÚLTIMA OPORTUNIDAD</div>
-                <p className="modal-text">
-                  La sesión se abortará en {countdown} segundos. Aún puedes arrepentirte y
-                  conservar tu huevo.
-                </p>
-                <div className="countdown-number">{countdown}</div>
-                <button className="preset" onClick={closeEmergency}>
-                  ✋ CANCELAR Y SEGUIR
+                <h2 id="emergency-title" className="modal-title">
+                  Última oportunidad
+                </h2>
+                <p className="modal-text">La sesión se abortará cuando llegue a cero. Aún puedes conservar tu huevo.</p>
+                <div className="countdown-number pixel" aria-live="polite">
+                  {countdown}
+                </div>
+                <button className="btn btn-primary" onClick={closeEmergency}>
+                  Cancelar y seguir
                 </button>
               </>
             )}

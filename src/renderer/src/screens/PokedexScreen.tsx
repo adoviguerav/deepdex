@@ -5,10 +5,10 @@ import Sprite from '../components/Sprite'
 import TypeChip from '../components/TypeChip'
 
 const RARITY_LABEL: Record<string, string> = {
-  common: 'COMÚN',
-  uncommon: 'INFRECUENTE',
-  rare: 'RARO',
-  legendary: 'LEGENDARIO'
+  common: 'Común',
+  uncommon: 'Infrecuente',
+  rare: 'Raro',
+  legendary: 'Legendario'
 }
 
 export default function PokedexScreen({
@@ -38,8 +38,13 @@ export default function PokedexScreen({
 
   return (
     <div className="pokedex">
-      <div className="pokedex-header panel">
-        POKÉDEX: {caughtCount}/{TOTAL_SPECIES}
+      <div className="pokedex-header">
+        <div className="pokedex-total">
+          <span className="field-label">Pokédex</span>
+          <span className="pixel">
+            {caughtCount}/{TOTAL_SPECIES}
+          </span>
+        </div>
         <div className="region-tabs">
           {GENERATIONS.map((g) => (
             <button
@@ -48,7 +53,7 @@ export default function PokedexScreen({
               aria-pressed={g.gen === gen}
               onClick={() => setGen(g.gen)}
             >
-              <span>{g.region.toUpperCase()}</span>
+              <span>{g.region}</span>
               <span className="region-count">
                 {caughtIn(g.from, g.to)}/{g.to - g.from + 1}
               </span>
@@ -64,7 +69,7 @@ export default function PokedexScreen({
               <Sprite
                 id={id}
                 shiny={rec?.shiny ?? false}
-                size={64}
+                size={96}
                 silhouette={!rec}
                 alt={rec ? nameOf(id) : '???'}
               />
@@ -81,15 +86,16 @@ export default function PokedexScreen({
 
       {selected !== null && (
         <div className="modal-backdrop" onClick={() => setSelected(null)}>
-          <div className="modal panel dex-detail" onClick={(e) => e.stopPropagation()}>
-            <div className="panel-title">
-              #{String(selected).padStart(3, '0')} {record ? nameOf(selected).toUpperCase() : '???'}
+          <div className="modal dex-detail" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="dex-detail-head">
+              <span className="pixel dex-number">#{String(selected).padStart(3, '0')}</span>
+              <h2 className="modal-title">{record ? nameOf(selected) : '???'}</h2>
             </div>
             <div className="dex-detail-sprite">
               <Sprite
                 id={selected}
                 shiny={record?.shiny ?? false}
-                size={128}
+                size={192}
                 silhouette={!record}
                 alt={record ? nameOf(selected) : '???'}
               />
@@ -98,23 +104,23 @@ export default function PokedexScreen({
               {typesOf(selected).map((t) => (
                 <TypeChip key={t} type={t} />
               ))}
-              <span className="rarity-tag">{RARITY_LABEL[rarityOf(selected)]}</span>
+              <span className={`rarity-tag rarity-${rarityOf(selected)}`}>{RARITY_LABEL[rarityOf(selected)]}</span>
             </div>
             {record ? (
               <div className="dex-detail-info">
-                <div>Capturado ×{record.count}{record.shiny ? ' · ✨ shiny' : ''}</div>
+                <div>Eclosionado ×{record.count}{record.shiny ? ' · ✨ shiny' : ''}</div>
                 <div>Primera vez: {new Date(record.firstCaughtAt).toLocaleDateString('es-ES')}</div>
               </div>
             ) : (
-              <div className="dex-detail-info">Aún no lo has incubado. ¡Sigue enfocado!</div>
+              <div className="dex-detail-info">Aún no ha salido de ningún huevo.</div>
             )}
             <div className="modal-actions">
-              <button className="preset" onClick={() => setSelected(null)}>
-                CERRAR
+              <button className="btn btn-secondary" onClick={() => setSelected(null)}>
+                Cerrar
               </button>
               {record && data.companionId !== selected && (
-                <button className="preset danger" onClick={makeCompanion}>
-                  ♥ COMPAÑERO
+                <button className="btn btn-primary" onClick={makeCompanion}>
+                  Elegir como compañero
                 </button>
               )}
             </div>

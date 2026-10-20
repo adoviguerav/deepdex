@@ -142,14 +142,14 @@ export const BADGES: BadgeDef[] = [
   {
     id: 'hours-250',
     name: 'Medalla Tierra',
-    emoji: '🌋',
+    emoji: '🌍',
     description: '250 horas de foco',
     earned: (s) => s.totalFocusMin >= 250 * 60
   },
   {
     id: 'streak-7',
     name: 'Medalla Alma',
-    emoji: '🔥',
+    emoji: '💗',
     description: 'Racha de 7 días',
     earned: (s) => s.bestStreak >= 7
   },
@@ -163,7 +163,7 @@ export const BADGES: BadgeDef[] = [
   {
     id: 'species-50',
     name: 'Medalla Volcán',
-    emoji: '🏐',
+    emoji: '🌋',
     description: '50 especies distintas',
     earned: (s) => s.speciesCount >= 50
   }

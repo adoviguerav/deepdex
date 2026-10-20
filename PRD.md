@@ -15,7 +15,7 @@ Resultado esperado: una app de escritorio para macOS donde inicia una sesión de
 
 | ID | Decisión | Elección |
 |---|---|---|
-| D1 | Stack | Electron + React + TypeScript (electron-vite). UI web con estética retro Game Boy/Pokémon. |
+| D1 | Stack | Electron + React + TypeScript (electron-vite). UI web; estética Pokédex desde el rediseño de octubre (ver 5e). |
 | D2 | Estrictez | Estricta con emergencia: las apps bloqueadas se cierran al instante; abortar exige escribir una frase, esperar 30 segundos y pierde todo el progreso de la sesión (huevo y XP incluidos). |
 | D3 | Gamificación | Entrenador completo: huevo por sesión que eclosiona en un Pokémon (mejor cuanto más larga la sesión), XP de entrenador por minuto de foco, niveles, Pokédex de capturas, rachas diarias y medallas de gimnasio como logros. |
 | D4 | Alcance de bloqueo MVP | Apps de macOS + webs en cualquier navegador vía `/etc/hosts` (pide contraseña de admin al iniciar/terminar sesión). |
@@ -146,6 +146,18 @@ Peticiones del usuario tras la v1: contar horas por tarea/tema con salida a fich
 Tests con Vitest (`npm test`, zona horaria Europe/Madrid): rachas (incluidos los cambios de hora), escudos, recompensas, eclosiones, niveles, estadísticas y validación de dominios.
 
 **Pendiente:** escala tipográfica legible (gran parte del texto mide menos de 8px), contraste de los chips de tipo claros, un helper privilegiado para no pedir la contraseña dos veces por sesión, y descontar el tiempo con el Mac en reposo.
+
+## 5e. Rediseño visual (2026-10-20)
+
+Petición: una interfaz más minimalista, con colores de Pokémon y huevos que se parezcan a los de verdad. Sustituye a la estética Game Boy verde de la fase 1.
+
+- **Paleta Pokédex.** Superficies blancas sobre gris claro. El rojo Poké Ball se reserva para la acción principal y la pestaña activa; el azul del logo, para los datos (barras, calendario de foco); el amarillo del logo, para lo especial (shiny, legendarios, subida de nivel, medallas).
+- **Tipografía.** Fuente del sistema para el texto y los botones, en minúsculas normales. Press Start 2P solo para números y etiquetas cortas sin tildes (sus mayúsculas acentuadas se ven como minúsculas), siempre a 8/16/24/48 px para que se vea nítida. Desaparece todo el texto por debajo de 11 px.
+- **Huevos reales.** Sprite oficial del huevo de Pokémon Negro/Blanco (PokeAPI), recoloreado según los huevos de distancia de Pokémon GO: manchas verdes (común, como el de 2 km), naranjas (raro, 5 km) y moradas (superraro, 10 km). Dos fases de grieta generadas sobre el mismo sprite (`src/renderer/public/eggs`). En pantallas oscuras el huevo va dentro de una incubadora clara para que su contorno no se pierda.
+- **Eclosión por fases**, como en los juegos: tiembla, primera grieta, tiembla más fuerte, se agrieta del todo, destello blanco y aparece el Pokémon. Se puede saltar con un clic y respeta la preferencia de reducir movimiento.
+- **Movimiento de pixel art sin rotar.** Los sprites no se giran (se deforman); el huevo en reposo da un saltito cada pocos segundos y al eclosionar tiembla de lado.
+- **Sprites a escala entera** (96 y 192 px) para que no salgan borrosos.
+- **Contraste.** El texto de los chips de tipo elige blanco o casi negro según el color (todos por encima de 5:1). Las medallas bloqueadas son legibles, con el emoji en gris.
 
 ## 6. Fuera de alcance (por ahora)
 

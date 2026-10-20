@@ -1,4 +1,5 @@
 import { BADGES, TOTAL_SPECIES } from '../../../shared/pokedex'
+import { formatMinutes } from '../../../shared/stats'
 import type { GameData } from '../../../shared/types'
 import { displayStreak, levelForXp, xpForLevel } from '../../../shared/types'
 
@@ -7,52 +8,71 @@ export default function TrainerScreen({ data }: { data: GameData }): JSX.Element
   const currentLevelXp = xpForLevel(level)
   const nextLevelXp = xpForLevel(level + 1)
   const progress = (data.xp - currentLevelXp) / (nextLevelXp - currentLevelXp)
-  const hours = Math.floor(data.totalFocusMin / 60)
-  const minutes = data.totalFocusMin % 60
   const speciesCount = Object.keys(data.caught).length
+  const streak = displayStreak(data.streak)
+
+  const stats = [
+    { label: 'Horas de foco', value: formatMinutes(data.totalFocusMin) },
+    { label: 'Sesiones completadas', value: String(data.sessionsCompleted) },
+    { label: 'Sesiones abortadas', value: String(data.sessionsAborted) },
+    { label: 'Racha actual', value: `${streak} ${streak === 1 ? 'día' : 'días'}` },
+    { label: 'Mejor racha', value: `${data.streak.best} ${data.streak.best === 1 ? 'día' : 'días'}` },
+    { label: 'Escudos de racha', value: `${data.streak.shields} de 2` },
+    { label: 'Especies registradas', value: `${speciesCount} de ${TOTAL_SPECIES}` }
+  ]
 
   return (
     <div className="trainer">
-      <div className="panel">
-        <div className="panel-title">ENTRENADOR NV. {level}</div>
-        <div className="progress-track xp-track">
-          <div className="progress-fill" style={{ width: `${Math.round(progress * 100)}%` }} />
+      <section className="card">
+        <div className="trainer-level">
+          <span className="pixel level-big">NV.{level}</span>
+          <span className="muted">
+            {data.xp} XP · faltan {nextLevelXp - data.xp} para el nivel {level + 1}
+          </span>
         </div>
-        <div className="xp-numbers">
-          {data.xp} XP · faltan {nextLevelXp - data.xp} para nv. {level + 1}
+        <div className="meter" aria-hidden="true">
+          <span className="meter-fill" style={{ width: `${Math.round(progress * 100)}%` }} />
         </div>
-      </div>
+      </section>
 
-      <div className="panel">
-        <div className="panel-title">ESTADÍSTICAS</div>
-        <div className="stat-rows">
-          <div className="stat-row"><span>Horas de foco</span><span>{hours}h {minutes}m</span></div>
-          <div className="stat-row"><span>Sesiones completadas</span><span>{data.sessionsCompleted}</span></div>
-          <div className="stat-row"><span>Sesiones abortadas</span><span>{data.sessionsAborted}</span></div>
-          <div className="stat-row"><span>Racha actual</span><span>{displayStreak(data.streak)} {displayStreak(data.streak) === 1 ? 'día' : 'días'}</span></div>
-          <div className="stat-row"><span>Escudos de racha</span><span>🛡 {data.streak.shields}/2</span></div>
-          <div className="stat-row"><span>Mejor racha</span><span>{data.streak.best} {data.streak.best === 1 ? 'día' : 'días'}</span></div>
-          <div className="stat-row"><span>Especies capturadas</span><span>{speciesCount}/{TOTAL_SPECIES}</span></div>
-        </div>
-      </div>
+      <section className="card">
+        <h2 className="card-title">Estadísticas</h2>
+        <dl className="stat-list">
+          {stats.map((s) => (
+            <div key={s.label} className="stat-item">
+              <dt>{s.label}</dt>
+              <dd>{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="field-hint">
+          Cada 7 días seguidos ganas un escudo (máximo 2). Si un día no completas ninguna sesión, se
+          gasta un escudo en vez de perder la racha.
+        </p>
+      </section>
 
-      <div className="panel">
-        <div className="panel-title">
-          MEDALLAS {data.badges.length}/{BADGES.length}
-        </div>
+      <section className="card">
+        <h2 className="card-title">
+          Medallas <span className="muted">{data.badges.length} de {BADGES.length}</span>
+        </h2>
         <div className="badges-grid">
           {BADGES.map((badge) => {
             const earned = data.badges.includes(badge.id)
             return (
-              <div key={badge.id} className={earned ? 'badge earned' : 'badge'} title={badge.description}>
-                <div className="badge-emoji">{badge.emoji}</div>
+              <div key={badge.id} className={earned ? 'badge earned' : 'badge'}>
+                <div className="badge-emoji" aria-hidden="true">
+                  {badge.emoji}
+                </div>
                 <div className="badge-name">{badge.name}</div>
-                <div className="badge-desc">{badge.description}</div>
+                <div className="badge-desc">
+                  {earned ? '✓ ' : ''}
+                  {badge.description}
+                </div>
               </div>
             )
           })}
         </div>
-      </div>
+      </section>
     </div>
   )
 }

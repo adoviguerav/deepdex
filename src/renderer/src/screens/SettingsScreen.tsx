@@ -27,34 +27,34 @@ export default function SettingsScreen({
 
   return (
     <div className="settings">
-      <div className="panel">
-        <div className="panel-title">APPS BLOQUEADAS</div>
+      <section className="card">
+        <h2 className="card-title">Apps bloqueadas</h2>
         <p className="settings-hint">
-          Una por línea, con el nombre exacto de la app (p. ej. WhatsApp). Se cierran al
-          instante durante una sesión.
+          Una por línea, con el nombre exacto de la app (p. ej. WhatsApp). Durante una sesión se cierran y, si siguen abiertas unos segundos después, se fuerzan a cerrar: guarda antes tu trabajo en ellas.
         </p>
         <textarea
-          className="blocklist-input"
+          className="input blocklist-input"
+          aria-label="Apps bloqueadas"
           rows={5}
           value={apps}
           onChange={(e) => setApps(e.target.value)}
         />
-      </div>
-      <div className="panel">
-        <div className="panel-title">WEBS BLOQUEADAS</div>
+      </section>
+      <section className="card">
+        <h2 className="card-title">Webs bloqueadas</h2>
         <p className="settings-hint">
-          Un dominio por línea (p. ej. twitter.com). Bloquea en todos los navegadores; macOS
-          pedirá tu contraseña al iniciar y terminar la sesión.
+          Un dominio por línea (p. ej. twitter.com). Se bloquean en todos los navegadores, junto con sus variantes habituales (www., m., old.reddit.com…). macOS pedirá tu contraseña al empezar y al terminar cada sesión.
         </p>
         <textarea
-          className="blocklist-input"
+          className="input blocklist-input"
+          aria-label="Webs bloqueadas"
           rows={8}
           value={domains}
           onChange={(e) => setDomains(e.target.value)}
         />
-      </div>
-      <button className="start-btn" onClick={save}>
-        {saved ? '✓ GUARDADO' : 'GUARDAR'}
+      </section>
+      <button className="btn btn-primary btn-start" onClick={save}>
+        {saved ? 'Guardado ✓' : 'Guardar cambios'}
       </button>
     </div>
   )

@@ -6,10 +6,10 @@ import TypeChip from '../components/TypeChip'
 
 const WEEKDAY_INITIALS = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
 const HEAT_STEPS = [
-  { min: 1, color: '#e3ecc0', label: '<30m' },
-  { min: 30, color: '#9bbc0f', label: '30m' },
-  { min: 90, color: '#4f8a2e', label: '1h30' },
-  { min: 180, color: '#0f380f', label: '3h+' }
+  { min: 1, color: '#d6e6f5', label: '<30m' },
+  { min: 30, color: '#93bfe6', label: '30m' },
+  { min: 90, color: '#3d86c9', label: '1h30' },
+  { min: 180, color: '#1d4f86', label: '3h+' }
 ]
 
 function dayLabel(day: string): string {
@@ -229,32 +229,32 @@ export default function HoursScreen({
   return (
     <div className="hours">
       {stats.sessionsLogged === 0 ? (
-        <div className="panel hours-empty">
+        <div className="card hours-empty">
           Aún no hay sesiones. Completa la primera y aquí verás tus horas por día, por semana y por tema.
         </div>
       ) : (
         <>
           <div className="stat-tiles">
             <div className="stat-tile">
-              <div className="stat-tile-label">HOY</div>
-              <div className="stat-tile-value">{formatMinutes(stats.todayMin)}</div>
+              <div className="stat-tile-label">Hoy</div>
+              <div className="stat-tile-value pixel">{formatMinutes(stats.todayMin)}</div>
             </div>
             <div className="stat-tile">
-              <div className="stat-tile-label">ESTA SEMANA</div>
-              <div className="stat-tile-value">{formatMinutes(stats.weekMin)}</div>
+              <div className="stat-tile-label">Esta semana</div>
+              <div className="stat-tile-value pixel">{formatMinutes(stats.weekMin)}</div>
             </div>
             <div className="stat-tile">
-              <div className="stat-tile-label">ESTE MES</div>
-              <div className="stat-tile-value">{formatMinutes(stats.monthMin)}</div>
+              <div className="stat-tile-label">Este mes</div>
+              <div className="stat-tile-value pixel">{formatMinutes(stats.monthMin)}</div>
             </div>
             <div className="stat-tile">
-              <div className="stat-tile-label">MEDIA/DÍA (30D)</div>
-              <div className="stat-tile-value">{formatMinutes(stats.avgDaily30)}</div>
+              <div className="stat-tile-label">Media diaria (30 días)</div>
+              <div className="stat-tile-value pixel">{formatMinutes(stats.avgDaily30)}</div>
             </div>
           </div>
 
-          <div className="panel">
-            <div className="panel-title">ÚLTIMOS 14 DÍAS</div>
+          <div className="card">
+            <h2 className="card-title">Últimos 14 días</h2>
             <DailyBars days={stats.last14} topicName={topicName} />
             {stats.bestDay && (
               <div className="chart-note">
@@ -263,23 +263,23 @@ export default function HoursScreen({
             )}
           </div>
 
-          <div className="panel">
-            <div className="panel-title">CALENDARIO DE FOCO</div>
+          <div className="card">
+            <h2 className="card-title">Calendario de foco</h2>
             <Heatmap weeks={stats.heatmap} />
           </div>
 
-          <div className="panel">
-            <div className="panel-title">HÁBITOS</div>
+          <div className="card">
+            <h2 className="card-title">Hábitos</h2>
             <div className="habit-row">
               <div>
-                <div className="stat-tile-label">COMPLETADAS</div>
-                <div className="habit-value">
+                <div className="stat-tile-label">Completadas</div>
+                <div className="habit-value pixel">
                   {stats.completionRate === null ? '—' : `${Math.round(stats.completionRate * 100)}%`}
                 </div>
               </div>
               <div>
-                <div className="stat-tile-label">SESIÓN MEDIA</div>
-                <div className="habit-value">
+                <div className="stat-tile-label">Sesión media</div>
+                <div className="habit-value pixel">
                   {stats.avgSessionMin === null ? '—' : formatMinutes(stats.avgSessionMin)}
                 </div>
               </div>
@@ -302,8 +302,8 @@ export default function HoursScreen({
         </>
       )}
 
-      <div className="panel">
-        <div className="panel-title">POR TEMA · ESTA SEMANA</div>
+      <div className="card">
+        <h2 className="card-title">Por tema · esta semana</h2>
         {stats.topics.length === 0 && stats.noTopicWeekMin === 0 && (
           <div className="egg-hint">
             Crea un tema en Inicio al empezar una sesión y sus horas aparecerán aquí.
@@ -318,7 +318,7 @@ export default function HoursScreen({
                 <TypeChip type={topic.type} />
                 {confirmDelete === t.id ? (
                   <button className="topic-delete confirm" onClick={() => doDelete(t.id)}>
-                    ¿BORRAR {formatMinutes(t.totalMin)}?
+                    ¿Borrar {formatMinutes(t.totalMin)}?
                   </button>
                 ) : (
                   <button className="topic-delete" aria-label={`Borrar tema ${t.name}`} onClick={() => setConfirmDelete(t.id)}>
@@ -351,8 +351,8 @@ export default function HoursScreen({
         )}
       </div>
 
-      <div className="panel">
-        <div className="panel-title">ÚLTIMAS SESIONES</div>
+      <div className="card">
+        <h2 className="card-title">Últimas sesiones</h2>
         {recentLog.length === 0 && <div className="egg-hint">Todavía no hay sesiones.</div>}
         {recentLog.map((entry) => (
           <div key={`${entry.startedAt}-${entry.durationMin}`} className="log-row">
@@ -364,8 +364,8 @@ export default function HoursScreen({
         ))}
       </div>
 
-      <button className="start-btn" onClick={doExport}>
-        ⬇ EXPORTAR A MARKDOWN
+      <button className="btn btn-secondary btn-start" onClick={doExport}>
+        Exportar a Markdown
       </button>
       {exportMsg && <div className="export-msg">{exportMsg}</div>}
     </div>

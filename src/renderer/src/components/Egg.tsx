@@ -1,31 +1,39 @@
 import type { EggTier } from '../../../shared/types'
 
-const TIER_COLORS: Record<EggTier, { shell: string; spots: string }> = {
-  common: { shell: '#f0e6c8', spots: '#7bb56a' },
-  rare: { shell: '#cfe3f5', spots: '#5a8fd0' },
-  superrare: { shell: '#f3d9f0', spots: '#b05ad0' }
+const TIER_NAMES: Record<EggTier, string> = {
+  common: 'Huevo común',
+  rare: 'Huevo raro',
+  superrare: 'Huevo superraro'
 }
 
-export default function Egg({ tier, wobble }: { tier: EggTier; wobble: boolean }): JSX.Element {
-  const colors = TIER_COLORS[tier]
+/** The sprite is 32x34 px; it is only ever drawn at whole multiples so pixels stay crisp. */
+const EGG_W = 32
+const EGG_H = 34
+
+/**
+ * The official egg sprite, with spot colours following Pokémon GO's distance
+ * eggs (green 2 km, orange 5 km, purple 10 km) and two crack stages.
+ */
+export default function Egg({
+  tier,
+  crack = 0,
+  scale = 4,
+  motion = 'none'
+}: {
+  tier: EggTier
+  crack?: 0 | 1 | 2
+  scale?: number
+  motion?: 'none' | 'idle' | 'hatching'
+}): JSX.Element {
+  const src = `./eggs/egg-${tier}${crack ? `-crack${crack}` : ''}.png`
   return (
-    <svg
-      className={wobble ? 'egg wobble' : 'egg'}
-      viewBox="0 0 64 80"
-      width="96"
-      height="120"
-      shapeRendering="crispEdges"
-    >
-      <path
-        d="M32 4 C16 4 8 28 8 46 C8 64 18 76 32 76 C46 76 56 64 56 46 C56 28 48 4 32 4 Z"
-        fill={colors.shell}
-        stroke="#3a3a3a"
-        strokeWidth="3"
-      />
-      <circle cx="24" cy="34" r="6" fill={colors.spots} />
-      <circle cx="40" cy="48" r="5" fill={colors.spots} />
-      <circle cx="30" cy="58" r="4" fill={colors.spots} />
-      <circle cx="42" cy="26" r="4" fill={colors.spots} />
-    </svg>
+    <img
+      className={`egg egg-${motion}`}
+      src={src}
+      width={EGG_W * scale}
+      height={EGG_H * scale}
+      alt={TIER_NAMES[tier]}
+      draggable={false}
+    />
   )
 }
