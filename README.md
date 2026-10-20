@@ -62,7 +62,7 @@ npm run build      # build de producción en out/
 npm run dist       # DMG para macOS en dist/ (solo en un Mac)
 ```
 
-Para publicar una versión: sube `version` en `package.json`, haz commit y empuja una etiqueta (`git tag v0.2.0 && git push origin v0.2.0`). El workflow `.github/workflows/release.yml` compila los dos `.dmg` en un Mac de GitHub, los firma ad hoc y los publica en Releases.
+Para publicar una versión: sube `version` en `package.json`, haz commit y lanza el workflow «Build macOS app» desde la pestaña Actions de GitHub (o empuja una etiqueta `vX.Y.Z`). El workflow `.github/workflows/release.yml` compila los dos `.dmg` en un Mac de GitHub, los firma ad hoc y los publica en Releases.
 
 ## Cómo funciona el bloqueo
 
