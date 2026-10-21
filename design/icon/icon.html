@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- Source of build/icon.png. Render with `node design/icon/render.cjs` (needs Playwright and the Inter Black font). -->
+<html><head><meta charset="utf-8"><style>
+html,body{margin:0;background:transparent}
+.canvas{width:1024px;height:1024px;position:relative}
+/* macOS icon grid: 824px plate with a ~22% corner radius inside a 1024px canvas */
+.plate{position:absolute;left:100px;top:100px;width:824px;height:824px;border-radius:185px;overflow:hidden;
+  background:linear-gradient(#e3350d 0 50%,#e9e7e1 50%);
+  box-shadow:0 14px 28px rgba(0,0,0,.28),0 2px 4px rgba(0,0,0,.18)}
+.grain{position:absolute;inset:0;opacity:.45;mix-blend-mode:multiply}
+.stack{position:absolute;inset:0;display:grid;place-items:center;transform:translateY(-15px)}
+.w{grid-area:1/1;font:900 320px/1 Inter;letter-spacing:-0.05em;white-space:nowrap}
+</style></head><body><div class="canvas"><div class="plate">
+<svg class="grain" width="824" height="824"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .9 0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+<div class="stack" id="stack"></div>
+</div></div>
+<script>
+// The word sits on the Poké Ball seam as its black band; echoes trail up into the red and down into the white,
+// each further one fainter and blurrier.
+const step = 320 * 0.2
+const opacity = [0.55, 0.32, 0.17, 0.07]
+const layers = []
+for (let k = 4; k >= 1; k--) {
+  for (const [dir, color] of [[-1, '#5a0d00'], [1, '#141416']]) {
+    layers.push(`<div class="w" style="color:${color};opacity:${opacity[k - 1]};transform:translateY(${dir * k * step}px);filter:blur(${k * 1.2}px)">DEX</div>`)
+  }
+}
+layers.push('<div class="w" style="color:#141416;text-shadow:0 6px 10px rgba(0,0,0,.22)">DEX</div>')
+document.getElementById('stack').innerHTML = layers.join('')
+</script></body></html>

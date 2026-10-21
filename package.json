@@ -1,6 +1,6 @@
 {
   "name": "deepdex",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Pokémon-themed deep work app for macOS",
   "private": true,
   "main": "./out/main/index.js",

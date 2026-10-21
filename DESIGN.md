@@ -57,3 +57,4 @@
 | 2026-10-20 | Hatch beats from Black & White | "¿Eh…?", shaking egg, two cracks, white flash, Pokémon on a battle platform, species number, red "Registrado" stamp for new entries. |
 | 2026-10-20 | Reward figures use Chakra Petch, not the pixel face | The pixel face is too wide for "+1h 30m" in a three-column row. |
 | 2026-10-20 | Empty Pokédex cells are bare silhouettes | Dashed outlines on 100+ empty cells were visual noise; only registered Pokémon get a paper tile. |
+| 2026-10-21 | App icon: "DEX" echo on a Poké Ball | The word is the ball's black band; fading, blurred copies trail up into the red and down into the white (echo effect from a "FOCUS" reference). Source in `design/icon/`. |
