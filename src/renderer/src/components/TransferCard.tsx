@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ImportResult } from '../../../preload/index'
+import type { ImportSummary } from '../../../shared/saveFile'
 
 function formatMin(totalMin: number): string {
   const h = Math.floor(totalMin / 60)
@@ -7,39 +7,60 @@ function formatMin(totalMin: number): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 
-function describe(result: ImportResult): string | null {
-  if (!result.imported) return result.error ?? null
-  const { newSessions, newSpecies, addedMin } = result.summary
-  if (newSessions === 0 && newSpecies === 0) return 'Ya lo tenías todo: no había nada nuevo.'
-  const parts = [`${newSessions} ${newSessions === 1 ? 'sesión nueva' : 'sesiones nuevas'}`]
-  if (addedMin > 0) parts.push(`+${formatMin(addedMin)} de foco`)
-  if (newSpecies > 0) parts.push(`${newSpecies} ${newSpecies === 1 ? 'Pokémon nuevo' : 'Pokémon nuevos'}`)
-  return `Progreso juntado: ${parts.join(', ')}.`
+function plural(n: number, one: string, many: string): string {
+  return `${n} ${n === 1 ? one : many}`
 }
+
+function describe({ newSessions, newAborted, newSpecies, addedMin, otherChanges }: ImportSummary): string {
+  const parts: string[] = []
+  if (newSessions > 0) parts.push(plural(newSessions, 'sesión nueva', 'sesiones nuevas'))
+  if (addedMin > 0) parts.push(`+${formatMin(addedMin)} de foco`)
+  if (newSpecies > 0) parts.push(plural(newSpecies, 'Pokémon nuevo', 'Pokémon nuevos'))
+  if (newAborted > 0) parts.push(plural(newAborted, 'sesión abortada', 'sesiones abortadas'))
+  if (otherChanges) parts.push('ajustes o temas más recientes')
+  return parts.length === 0
+    ? 'Ya lo tenías todo: no había nada nuevo.'
+    : `Progreso juntado: ${parts.join(', ')}.`
+}
+
+type Message = { text: string; error?: boolean; canUndo?: boolean }
 
 /** Carries progress to another computer as a file and merges it there. */
 export default function TransferCard(): JSX.Element {
-  const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null)
+  const [message, setMessage] = useState<Message | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const exportProgress = (): void => {
+  const run = (action: () => Promise<Message | null>): void => {
     setBusy(true)
-    void window.deepdex
-      .exportProgress()
-      .then((r) => r.saved && setMessage({ text: 'Exportado. Lleva el archivo al otro Mac.', error: false }))
+    void action()
+      .then((m) => m && setMessage(m))
+      .catch(() => setMessage({ text: 'Algo ha fallado. No se ha cambiado nada.', error: true }))
       .finally(() => setBusy(false))
   }
 
-  const importProgress = (): void => {
-    setBusy(true)
-    void window.deepdex
-      .importProgress()
-      .then((r) => {
-        const text = describe(r)
-        if (text) setMessage({ text, error: !r.imported })
-      })
-      .finally(() => setBusy(false))
-  }
+  const exportProgress = (): void =>
+    run(async () => {
+      const r = await window.deepdex.exportProgress()
+      if (r.saved) return { text: 'Exportado. Lleva el archivo al otro Mac.' }
+      return r.error ? { text: r.error, error: true } : null
+    })
+
+  const importProgress = (): void =>
+    run(async () => {
+      const r = await window.deepdex.importProgress()
+      if (!r.imported) return r.error ? { text: r.error, error: true } : null
+      const { newSessions, newAborted, newSpecies, addedMin, otherChanges } = r.summary
+      const changed = newSessions + newAborted + newSpecies + addedMin !== 0 || otherChanges
+      return { text: describe(r.summary), canUndo: changed }
+    })
+
+  const undoImport = (): void =>
+    run(async () => {
+      const r = await window.deepdex.undoImport()
+      return r.undone
+        ? { text: 'Importación deshecha: tienes tu progreso de antes.' }
+        : { text: r.error ?? 'No se pudo deshacer.', error: true }
+    })
 
   return (
     <section className="card">
@@ -50,9 +71,14 @@ export default function TransferCard(): JSX.Element {
         como quieras.
       </p>
       {message && (
-        <p className={message.error ? 'transfer-message error' : 'transfer-message'} role="status">
-          {message.text}
-        </p>
+        <div className={message.error ? 'transfer-message error' : 'transfer-message'} role="status">
+          <span>{message.text}</span>
+          {message.canUndo && (
+            <button className="link-quiet" onClick={undoImport} disabled={busy}>
+              Deshacer
+            </button>
+          )}
+        </div>
       )}
       <div className="transfer-actions">
         <button className="btn btn-secondary" onClick={exportProgress} disabled={busy}>

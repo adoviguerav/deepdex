@@ -1,5 +1,17 @@
 import { app } from 'electron'
-import { closeSync, copyFileSync, existsSync, fsyncSync, openSync, readFileSync, renameSync, writeSync } from 'fs'
+import {
+  closeSync,
+  copyFileSync,
+  existsSync,
+  fsyncSync,
+  openSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+  writeSync
+} from 'fs'
 import { join } from 'path'
 import type { GameData } from '../shared/types'
 
@@ -126,6 +138,18 @@ export class Store {
   replaceData(data: GameData): void {
     this.state.data = data
     this.save()
+  }
+
+  /**
+   * Writes a full copy of the current progress next to the data file (for
+   * example before an import) and keeps only the latest few of that kind.
+   */
+  snapshot(label: string): void {
+    const dir = app.getPath('userData')
+    const prefix = `deepdex-data.${label}-`
+    writeFileSync(join(dir, `${prefix}${Date.now()}.json`), JSON.stringify(this.state, null, 2))
+    const old = readdirSync(dir).filter((f) => f.startsWith(prefix)).sort().slice(0, -5)
+    for (const f of old) unlinkSync(join(dir, f))
   }
 
   get activeSession(): PersistedState['activeSession'] {

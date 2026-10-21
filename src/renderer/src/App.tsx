@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { CompletionResult, GameData, SessionState } from '../../shared/types'
+import ScreenBoundary from './components/ScreenBoundary'
 import CompletedScreen from './screens/CompletedScreen'
 import Home from './screens/Home'
 import HoursScreen from './screens/HoursScreen'
@@ -79,11 +80,13 @@ export default function App(): JSX.Element {
         </span>
       </header>
       <main className="app-content">
-        {view === 'home' && <Home data={data} onDataChanged={setData} />}
-        {view === 'hours' && <HoursScreen data={data} onDataChanged={setData} />}
-        {view === 'pokedex' && <PokedexScreen data={data} onDataChanged={setData} />}
-        {view === 'trainer' && <TrainerScreen data={data} />}
-        {view === 'settings' && <SettingsScreen data={data} onDataChanged={setData} />}
+        <ScreenBoundary key={view}>
+          {view === 'home' && <Home data={data} onDataChanged={setData} />}
+          {view === 'hours' && <HoursScreen data={data} onDataChanged={setData} />}
+          {view === 'pokedex' && <PokedexScreen data={data} onDataChanged={setData} />}
+          {view === 'trainer' && <TrainerScreen data={data} />}
+          {view === 'settings' && <SettingsScreen data={data} onDataChanged={setData} />}
+        </ScreenBoundary>
       </main>
       <nav className="tabbar">
         {NAV.map((item) => (

@@ -1,9 +1,9 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 import type { PokeType } from '../shared/pokedex'
 import type { CompletionResult, GameData, SessionState, Settings } from '../shared/types'
-import type { ImportResult } from '../main/transfer'
+import type { ExportResult, ImportResult, UndoResult } from '../main/transfer'
 
-export type { ImportResult }
+export type { ExportResult, ImportResult, UndoResult }
 
 export interface HostsStatus {
   /** Websites still blocked although no session is running. */
@@ -25,8 +25,9 @@ export interface DeepdexApi {
   getHostsStatus(): Promise<HostsStatus>
   releaseHosts(): Promise<HostsStatus>
   retryWebBlock(): Promise<SessionState>
-  exportProgress(): Promise<{ saved: boolean; path?: string }>
+  exportProgress(): Promise<ExportResult>
   importProgress(): Promise<ImportResult>
+  undoImport(): Promise<UndoResult>
   onDataChanged(cb: () => void): () => void
   onSessionUpdate(cb: (state: SessionState) => void): () => void
   onOpenEmergency(cb: () => void): () => void
@@ -57,6 +58,7 @@ const api: DeepdexApi = {
   retryWebBlock: () => ipcRenderer.invoke('hosts:retry'),
   exportProgress: () => ipcRenderer.invoke('progress:export'),
   importProgress: () => ipcRenderer.invoke('progress:import'),
+  undoImport: () => ipcRenderer.invoke('progress:undo-import'),
   onDataChanged: (cb) => subscribe('data:changed', cb),
   onSessionUpdate: (cb) => subscribe('session:update', cb),
   onOpenEmergency: (cb) => subscribe('session:open-emergency', cb),

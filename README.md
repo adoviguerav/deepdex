@@ -27,6 +27,8 @@ Se juntan los dos progresos, no se sustituyen: cada sesión lleva un identificad
 
 También se puede importar directamente `deepdex-data.json` copiado de otro Mac.
 
+Si importas un archivo equivocado, pulsa «Deshacer» justo después. Además, antes de cada importación se guarda una copia completa en `~/Library/Application Support/deepdex/deepdex-data.pre-import-<fecha>.json` (se conservan las 5 últimas): para volver a una, cierra DeepDex y renómbrala a `deepdex-data.json`. El archivo importado se revisa campo a campo y lo que no sea válido (fechas imposibles, Pokémon que no existen, ajustes rotos) se descarta, así que un archivo dañado no puede estropear tu progreso.
+
 ## Primera sesión
 
 1. En **Ajustes**, revisa las apps y webs que quieres bloquear. Los nombres de apps deben coincidir con el de la app tal como aparece en el Dock (por ejemplo `WhatsApp`).

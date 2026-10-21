@@ -1,7 +1,7 @@
 import { BrowserWindow, dialog, ipcMain, Notification } from 'electron'
 import { writeFileSync } from 'fs'
-import { normalizeDomain } from '../shared/domains'
 import { ALL_TYPES, TYPE_LABELS_ES, type PokeType } from '../shared/pokedex'
+import { cleanSettings } from '../shared/settings'
 import type { CompletionResult, GameData, SessionState, Settings } from '../shared/types'
 import { localDay, newId } from '../shared/types'
 import type { HostsBlocker } from './hostsBlocker'
@@ -137,17 +137,7 @@ export function registerIpc({ store, engine, hostsBlocker, getWindow, showWindow
   })
 
   ipcMain.handle('settings:update', (_event, partial: Partial<Settings>) => {
-    const settings = store.data.settings
-    if (Array.isArray(partial.blocklistApps)) {
-      settings.blocklistApps = partial.blocklistApps.map((s) => String(s).trim()).filter(Boolean)
-    }
-    if (Array.isArray(partial.blocklistDomains)) {
-      const valid = partial.blocklistDomains.map((d) => normalizeDomain(String(d))).filter((d): d is string => d !== null)
-      settings.blocklistDomains = [...new Set(valid)]
-    }
-    if (typeof partial.customDurationMin === 'number' && Number.isFinite(partial.customDurationMin)) {
-      settings.customDurationMin = Math.max(10, Math.min(240, Math.round(partial.customDurationMin)))
-    }
+    store.data.settings = cleanSettings(partial, store.data.settings)
     store.data.settingsUpdatedAt = Date.now()
     store.save()
     return store.data
