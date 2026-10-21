@@ -1,6 +1,6 @@
 {
   "name": "deepdex",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Pokémon-themed deep work app for macOS",
   "private": true,
   "main": "./out/main/index.js",
@@ -11,9 +11,6 @@
     "start": "electron-vite preview",
     "dist": "electron-vite build && electron-builder --mac",
     "test": "TZ=Europe/Madrid vitest run"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.45.4"
   },
   "build": {
     "appId": "com.adolfo.deepdex",

@@ -1347,49 +1347,24 @@ textarea {
   resize: vertical;
 }
 
-/* ---- sync ---- */
-.sync-row {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.sync-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.sync-error {
+/* ---- transfer ---- */
+.transfer-message {
   margin: 10px 0 0;
   padding: 8px 12px;
-  border-left: 4px solid var(--red);
+  border-left: 4px solid var(--ink);
   background: var(--tint);
   font-size: 13px;
 }
 
-.sync-form {
-  display: flex;
-  flex-direction: column;
+.transfer-message.error {
+  border-left-color: var(--red);
 }
 
-.sync-form .field {
-  margin-top: 12px;
-}
-
-.sync-actions {
+.transfer-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 14px;
-}
-
-.link-quiet {
-  align-self: flex-start;
-  margin-top: 10px;
-  font-size: 12px;
-  color: var(--ink-2);
-  text-decoration: underline;
 }
 
 /* ---- hours ---- */

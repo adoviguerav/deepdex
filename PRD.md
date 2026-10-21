@@ -164,7 +164,7 @@ Petición: una interfaz más minimalista, con colores de Pokémon y huevos que s
 El usuario quiere DeepDex también en el Mac del trabajo (tiene permisos de administrador), sin clonar el repo con su cuenta de GitHub del trabajo y con el mismo progreso en ambos ordenadores. Una web quedó descartada: sin bloqueo no tiene sentido.
 
 - **Descarga:** GitHub Actions compila en un Mac de GitHub dos `.dmg` (Apple Silicon e Intel) al empujar una etiqueta `v*`, los firma ad hoc (sin cuenta de Apple, macOS rechazaría la app en Apple Silicon) y los publica en Releases.
-- **Sincronización:** Supabase (gratuito), una fila por cuenta con todo el progreso en JSON y una regla de seguridad que limita cada cuenta a su fila. El usuario crea el proyecto y pega URL y clave en Ajustes; no hay secretos en el repo.
+- **Mover progreso entre ordenadores:** exportar a un archivo JSON e importarlo en el otro Mac, que lo junta con el suyo (unión del historial por id y recálculo). Sin cuentas ni servidores; sustituye a la sincronización con Supabase, que obligaba a mantener un proyecto que se pausa si no se usa.
 - **Modelo fusionable:** cada sesión del historial lleva id, hora de fin y el Pokémon que eclosionó. XP, horas, Pokédex, racha y medallas se recalculan desde el historial (`rebuildFromLog`), y fusionar dos ordenadores es unir sus historiales (`mergeGameData`). Temas con marca de borrado y fecha de edición; ajustes y compañero, el último cambio gana. Se elimina el tope de 2000 sesiones.
 
 ## 6. Fuera de alcance (por ahora)

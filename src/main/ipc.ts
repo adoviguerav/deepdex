@@ -67,11 +67,9 @@ export interface IpcContext {
   showWindow: () => BrowserWindow
   /** Asks for the admin password again to block websites in the running session. */
   retryWeb: () => Promise<void>
-  /** Called after any local edit so progress can sync to the other computer. */
-  onLocalChange: () => void
 }
 
-export function registerIpc({ store, engine, hostsBlocker, getWindow, showWindow, retryWeb, onLocalChange }: IpcContext): void {
+export function registerIpc({ store, engine, hostsBlocker, getWindow, showWindow, retryWeb }: IpcContext): void {
   // Kept until the window confirms it showed the hatch, so closing the window
   // during a session never loses the result.
   let pendingResult: CompletionResult | null = null
@@ -102,7 +100,6 @@ export function registerIpc({ store, engine, hostsBlocker, getWindow, showWindow
       pokemonId !== null && store.data.caught[pokemonId] ? pokemonId : null
     store.data.companionUpdatedAt = Date.now()
     store.save()
-    onLocalChange()
     return store.data
   })
 
@@ -112,7 +109,6 @@ export function registerIpc({ store, engine, hostsBlocker, getWindow, showWindow
       const now = Date.now()
       store.data.topics.push({ id: newId(), name: trimmed, type, totalMin: 0, createdAt: now, updatedAt: now })
       store.save()
-      onLocalChange()
     }
     return store.data
   })
@@ -123,7 +119,6 @@ export function registerIpc({ store, engine, hostsBlocker, getWindow, showWindow
       topic.deleted = true
       topic.updatedAt = Date.now()
       store.save()
-      onLocalChange()
     }
     return store.data
   })
@@ -155,7 +150,6 @@ export function registerIpc({ store, engine, hostsBlocker, getWindow, showWindow
     }
     store.data.settingsUpdatedAt = Date.now()
     store.save()
-    onLocalChange()
     return store.data
   })
 

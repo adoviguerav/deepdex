@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { GameData } from '../../../shared/types'
-import SyncCard from '../components/SyncCard'
+import TransferCard from '../components/TransferCard'
 
 export default function SettingsScreen({
   data,
@@ -12,6 +12,12 @@ export default function SettingsScreen({
   const [apps, setApps] = useState(data.settings.blocklistApps.join('\n'))
   const [domains, setDomains] = useState(data.settings.blocklistDomains.join('\n'))
   const [saved, setSaved] = useState(false)
+
+  // An import can bring newer settings from the other computer.
+  useEffect(() => {
+    setApps(data.settings.blocklistApps.join('\n'))
+    setDomains(data.settings.blocklistDomains.join('\n'))
+  }, [data.settings])
 
   const save = (): void => {
     void window.deepdex
@@ -28,7 +34,7 @@ export default function SettingsScreen({
 
   return (
     <div className="settings">
-      <SyncCard />
+      <TransferCard />
       <section className="card">
         <h2 className="card-title">Apps bloqueadas</h2>
         <p className="settings-hint">

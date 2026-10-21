@@ -15,32 +15,17 @@ No hace falta git ni Node: cada versión se compila sola en GitHub.
 
 Para actualizar, descarga el `.dmg` nuevo y reemplaza la app. Tu progreso no se toca: vive en `~/Library/Application Support/deepdex/`.
 
-## Progreso compartido entre ordenadores
+## Llevar el progreso a otro Mac
 
-DeepDex guarda tu progreso en una base de datos gratuita de [Supabase](https://supabase.com) para que tus Pokémon, horas y racha sean los mismos en casa y en el trabajo. Se configura una sola vez:
+No hay cuentas ni servidores: el progreso viaja en un archivo.
 
-1. Crea una cuenta en Supabase y un proyecto nuevo (plan gratuito; la región da igual, mejor una europea).
-2. En el proyecto, abre **SQL Editor**, pega esto y pulsa **Run**:
+1. En el Mac donde has avanzado: **Ajustes → Mover progreso → Exportar progreso**. Guarda `deepdex-progreso-<fecha>.json`.
+2. Pásalo al otro Mac como quieras: AirDrop, correo a ti mismo, USB.
+3. En el otro Mac: **Ajustes → Mover progreso → Importar y juntar** y elige el archivo.
 
-   ```sql
-   create table public.deepdex_saves (
-     user_id uuid primary key references auth.users (id) on delete cascade,
-     data jsonb not null,
-     updated_at timestamptz not null default now()
-   );
-   alter table public.deepdex_saves enable row level security;
-   create policy "Cada usuario solo ve su progreso" on public.deepdex_saves
-     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-   ```
+Se juntan los dos progresos, no se sustituyen: cada sesión lleva un identificador y los totales (horas, XP, Pokédex, racha, medallas) se recalculan a partir del historial unido. Puedes importar en los dos sentidos y repetir con el mismo archivo sin duplicar nada. Los temas borrados siguen borrados, y para los ajustes y el compañero gana el cambio más reciente.
 
-3. En **Authentication → Sign In / Providers → Email**, desactiva **Confirm email** (es un proyecto solo tuyo y así no hace falta confirmar por correo).
-4. En **Project Settings → API** copia la **Project URL** y la clave **anon public**.
-5. En DeepDex, **Ajustes → Sincronización**: pega la URL y la clave, pulsa «Guardar proyecto», escribe tu email y una contraseña y pulsa «Crear cuenta».
-6. En el otro Mac: los mismos pasos 5 con la misma URL, clave, email y contraseña, pero pulsando «Entrar».
-
-Cómo se sincroniza: al abrir la app, al terminar o abortar cada sesión, tras cada cambio y cada 10 minutos. Cada sesión queda en un historial con su identificador y los totales se recalculan a partir de él, así que si usas los dos Macs sin conexión, al reconectar se suman las sesiones de ambos sin perder ni duplicar nada. Para los ajustes y el compañero gana el último cambio.
-
-La clave «anon public» puede estar en la app sin problema: la regla del paso 2 hace que cada cuenta solo pueda leer y escribir su propio progreso.
+También se puede importar directamente `deepdex-data.json` copiado de otro Mac.
 
 ## Primera sesión
 
@@ -57,7 +42,7 @@ La clave «anon public» puede estar en la app sin problema: la regla del paso 2
 npm install
 npm run dev        # arranca Electron con recarga en caliente
 npm run typecheck  # comprobación de tipos (main + renderer)
-npm test           # tests de lógica (rachas, eclosiones, estadísticas, dominios)
+npm test           # tests de lógica (rachas, eclosiones, estadísticas, dominios, fusión de progresos)
 npm run build      # build de producción en out/
 npm run dist       # DMG para macOS en dist/ (solo en un Mac)
 ```
