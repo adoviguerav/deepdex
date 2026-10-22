@@ -39,7 +39,7 @@ Resultado esperado: una app de escritorio para macOS donde inicia una sesión de
 - Botón «Emergencia» en la pantalla de sesión → escribir la frase «necesito salir de verdad» → cuenta atrás de 30 segundos aún cancelable → la sesión se aborta: se retiran los bloqueos, el huevo se pierde y no se otorga XP. El aborto queda registrado en las estadísticas.
 
 ### Gamificación (D3)
-- **Huevos**: al iniciar una sesión se asigna un huevo cuya calidad depende de la duración: <45 min → común; 45–79 → raro; ≥80 → superraro. La calidad define las probabilidades de rareza del Pokémon al eclosionar (común / infrecuente / raro / legendario, con legendarios solo posibles en huevos superraros). ~1/64 de probabilidad de shiny, duplicada con racha ≥7 días.
+- **Huevos**: al iniciar una sesión se asigna un huevo cuya calidad depende de la duración: <45 min → común; 45–79 → raro; ≥80 → superraro. La calidad define las probabilidades de rareza del Pokémon al eclosionar (común / infrecuente / raro / legendario). El huevo superraro nunca da comunes (20 % infrecuente, 65 % raro, 15 % legendario) y es el único con legendarios; además garantiza uno como mucho cada 8 huevos superraros (pity calculado desde el historial, así que sobrevive a importar progreso). Cada huevo prioriza especies que aún no tienes (50 % común, 70 % raro, 90 % superraro). Shiny 1/64, el doble con racha ≥7 días y el doble en huevo superraro.
 - **XP y nivel de entrenador**: 1 XP por minuto completado. Nivel n requiere `100 × n^1.5` XP acumulada (redondeado). El nivel solo sube, nunca baja.
 - **Pokédex**: los 649 de las generaciones 1-5, organizados por región (Kanto, Johto, Hoenn, Sinnoh, Teselia); los no capturados se muestran en silueta. Repetidos cuentan (contador por especie).
 - **Rachas**: días consecutivos con al menos una sesión completada.
@@ -111,7 +111,7 @@ Peticiones del usuario tras la v1: contar horas por tarea/tema con salida a fich
 | Sonido | Jingles chiptune (WebAudio, sin ficheros) al eclosionar, subir de nivel y ganar medalla. |
 | Hoy | Inicio muestra los minutos completados del día, para que la victoria diaria sea visible. |
 
-**Ideas investigadas y aplazadas** (candidatas a fase 6): caramelos por repetidos para evolucionar capturas (estilo Pokémon GO), sistema de pity que garantice un raro tras N huevos sin suerte, capítulos mensuales con cierre limpio (isla/región terminada cada mes), quest book diario (2-3 objetivos), sesiones de foco en compañía (multijugador), y estadísticas semanales por tema.
+**Ideas investigadas y aplazadas** (candidatas a fase 6): caramelos por repetidos para evolucionar capturas (estilo Pokémon GO), capítulos mensuales con cierre limpio (isla/región terminada cada mes), quest book diario (2-3 objetivos), sesiones de foco en compañía (multijugador), y estadísticas semanales por tema.
 
 ## 5c. Generaciones 1-5 y recursos locales (2026-10-16)
 

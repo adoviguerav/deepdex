@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { eggsUntilLegendary } from '../../../shared/eggs'
 import { ALL_TYPES, nameOf, TYPE_LABELS_ES, type PokeType } from '../../../shared/pokedex'
 import { formatMinutes } from '../../../shared/stats'
 import type { GameData } from '../../../shared/types'
@@ -11,7 +12,7 @@ const PRESETS = [25, 50, 90]
 const TIER_INFO: Record<string, { label: string; hint: string }> = {
   common: { label: 'Huevo común', hint: 'Menos de 45 min · Pokémon comunes' },
   rare: { label: 'Huevo raro', hint: '45 a 79 min · más infrecuentes y raros' },
-  superrare: { label: 'Huevo superraro', hint: '80 min o más · puede salir un legendario' }
+  superrare: { label: 'Huevo superraro', hint: '80 min o más · sin comunes, 15 % de legendario' }
 }
 
 export default function Home({
@@ -35,6 +36,7 @@ export default function Home({
     ? Math.max(10, Math.min(240, parseInt(custom, 10) || data.settings.customDurationMin))
     : duration
   const tier = eggTierForDuration(effectiveDuration)
+  const untilLegendary = eggsUntilLegendary(data.sessionLog)
   const level = levelForXp(data.xp)
   const levelXp = xpForLevel(level)
   const nextXp = xpForLevel(level + 1)
@@ -140,6 +142,13 @@ export default function Home({
           <div className="egg-text">
             <div className="egg-label">{TIER_INFO[tier].label}</div>
             <div className="egg-hint">{TIER_INFO[tier].hint}</div>
+            {tier === 'superrare' && (
+              <div className="egg-hint">
+                {untilLegendary === 1
+                  ? 'Este huevo trae un legendario seguro'
+                  : `Legendario seguro en ${untilLegendary} huevos superraros como mucho`}
+              </div>
+            )}
           </div>
         </div>
 

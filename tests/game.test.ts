@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { grantCompletion, recordAbort } from '../src/main/game'
-import { rarityOf, TOTAL_SPECIES, typesOf } from '../src/shared/pokedex'
+import { eggsUntilLegendary } from '../src/shared/eggs'
+import { LEGENDARY_PITY, rarityOf, TOTAL_SPECIES, typesOf } from '../src/shared/pokedex'
 import { displayStreak, levelForXp, xpForLevel } from '../src/shared/types'
 import { emptyData, seeded } from './helpers'
 
@@ -108,6 +109,7 @@ describe('hatching', () => {
           expect(id).toBeGreaterThanOrEqual(1)
           expect(id).toBeLessThanOrEqual(TOTAL_SPECIES)
           if (eggTier !== 'superrare') expect(rarityOf(id)).not.toBe('legendary')
+          if (eggTier === 'superrare') expect(rarityOf(id)).not.toBe('common')
         }
       }
     }
@@ -123,6 +125,50 @@ describe('hatching', () => {
       if (typesOf(r.hatch!.pokemonId).includes('Dark')) darkHits++
     }
     expect(darkHits / 2000).toBeGreaterThan(0.5)
+  })
+})
+
+describe('long sessions', () => {
+  const long = { durationMin: 90, eggTier: 'superrare' as const, topicId: null }
+
+  function play(sessions: number, seed: number): ReturnType<typeof emptyData> {
+    const d = emptyData()
+    const random = seeded(seed)
+    for (let i = 0; i < sessions; i++) {
+      const end = new Date(2026, 0, 1 + i, 12)
+      grantCompletion(d, { ...long, startedAt: end.getTime() - 90 * 60000 }, end, random)
+    }
+    return d
+  }
+
+  it('never go more than the pity limit without a legendary', () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      let dry = 0
+      for (const e of play(60, seed).sessionLog) {
+        dry = rarityOf(e.hatch!.pokemonId) === 'legendary' ? 0 : dry + 1
+        expect(dry).toBeLessThan(LEGENDARY_PITY)
+      }
+    }
+  })
+
+  it('count down to the guaranteed legendary', () => {
+    const d = emptyData()
+    expect(eggsUntilLegendary(d.sessionLog)).toBe(LEGENDARY_PITY)
+    const day = new Date(2026, 0, 1).getTime()
+    d.sessionLog.push({ startedAt: day, durationMin: 90, topicId: null, completed: true, hatch: { pokemonId: 10, shiny: false } })
+    d.sessionLog.push({ startedAt: day, durationMin: 25, topicId: null, completed: true, hatch: { pokemonId: 11, shiny: false } })
+    expect(eggsUntilLegendary(d.sessionLog)).toBe(LEGENDARY_PITY - 1)
+    d.sessionLog.push({ startedAt: day, durationMin: 90, topicId: null, completed: true, hatch: { pokemonId: 150, shiny: false } })
+    expect(eggsUntilLegendary(d.sessionLog)).toBe(LEGENDARY_PITY)
+  })
+
+  it('mostly bring species you have not caught yet', () => {
+    let repeats = 0
+    for (let seed = 1; seed <= 20; seed++) {
+      const log = play(30, seed).sessionLog
+      repeats += log.length - new Set(log.map((e) => e.hatch!.pokemonId)).size
+    }
+    expect(repeats / (20 * 30)).toBeLessThan(0.1)
   })
 })
 

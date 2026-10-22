@@ -88,12 +88,25 @@ export function spriteUrl(id: number, shiny = false): string {
   return shiny ? `./sprites/shiny/${id}.png` : `./sprites/${id}.png`
 }
 
-/** Hatch odds per egg tier: [common, uncommon, rare, legendary]. */
+/**
+ * Hatch odds per egg tier: [common, uncommon, rare, legendary]. A long
+ * session never yields a common Pokémon and is the only way to a legendary.
+ */
 export const EGG_ODDS: Record<EggTier, [number, number, number, number]> = {
   common: [0.7, 0.25, 0.05, 0],
-  rare: [0.35, 0.45, 0.2, 0],
-  superrare: [0.1, 0.4, 0.45, 0.05]
+  rare: [0.3, 0.5, 0.2, 0],
+  superrare: [0, 0.2, 0.65, 0.15]
 }
+
+/** Chance that a hatch is drawn from species not yet in the Pokédex (when any are left at that rarity). */
+export const NEW_SPECIES_BIAS: Record<EggTier, number> = {
+  common: 0.5,
+  rare: 0.7,
+  superrare: 0.9
+}
+
+/** A superrare egg is a legendary at the latest this many superrare eggs after the last one. */
+export const LEGENDARY_PITY = 8
 
 export const SHINY_ODDS = 1 / 64
 

@@ -1,7 +1,9 @@
+import { eggsUntilLegendary } from '../shared/eggs'
 import {
   BADGES,
   EGG_ODDS,
   nameOf,
+  NEW_SPECIES_BIAS,
   rarityOf,
   SHINY_ODDS,
   TOTAL_SPECIES,
@@ -49,14 +51,20 @@ function hatch(
   random: () => number,
   now: Date
 ): HatchResult {
-  const rarity = rollRarity(tier, random)
+  const pity = tier === 'superrare' && eggsUntilLegendary(data.sessionLog) === 1
+  const rarity = pity ? 'legendary' : rollRarity(tier, random)
   let pool = SPECIES_BY_RARITY[rarity]
   if (topic && random() < TYPE_BIAS) {
     const typed = pool.filter((id) => typesOf(id).includes(topic.type))
     if (typed.length > 0) pool = typed
   }
+  if (random() < NEW_SPECIES_BIAS[tier]) {
+    const unseen = pool.filter((id) => !data.caught[id])
+    if (unseen.length > 0) pool = unseen
+  }
   const pokemonId = pool[Math.floor(random() * pool.length)]
-  const shinyOdds = data.streak.current >= 7 ? SHINY_ODDS * 2 : SHINY_ODDS
+  // A week's streak and a superrare egg each double the shiny chance.
+  const shinyOdds = SHINY_ODDS * (data.streak.current >= 7 ? 2 : 1) * (tier === 'superrare' ? 2 : 1)
   const shiny = random() < shinyOdds
   const existing = data.caught[pokemonId]
   const isNew = !existing
