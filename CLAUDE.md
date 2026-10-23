@@ -1,6 +1,6 @@
 # DeepDex
 
-Personal deep-work app for macOS (Electron + React + TypeScript) with a Pokémon theme. Spec in PRD.md, setup in README.md.
+Personal deep-work app for macOS (Electron + React + TypeScript) with a Pokémon theme. Setup and behaviour in README.md, visual design in DESIGN.md.
 
 ## Commands
 - `npm run dev` · `npm run typecheck` · `npm test` · `npm run build` · `npm run dist`

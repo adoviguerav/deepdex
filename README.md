@@ -2,13 +2,11 @@
 
 App personal de deep work para macOS con temática Pokémon. Inicias una sesión de foco con temporizador; mientras dura, las apps y webs de tu lista negra quedan bloqueadas. Cada sesión completada incuba un huevo que eclosiona en un Pokémon de las generaciones 1 a 5 (649 especies, de Kanto a Teselia), y tus horas acumuladas suben tu nivel de entrenador, tu racha y tus medallas. La pestaña HORAS muestra tus estadísticas de foco por día, semana, mes y tema.
 
-El diseño completo está en [PRD.md](PRD.md).
-
 ## Instalar
 
 No hace falta git ni Node: cada versión se compila sola en GitHub.
 
-1. Abre la página de [versiones (Releases)](https://github.com/adoviguerav/deepdex/releases). El repositorio es privado: si el navegador tiene abierta otra cuenta de GitHub (la del trabajo), ábrela en una ventana privada y entra con la tuya.
+1. Abre la página de [versiones (Releases)](https://github.com/adoviguerav/deepdex/releases). No hace falta cuenta de GitHub.
 2. Descarga `DeepDex-<versión>-arm64.dmg` si tu Mac tiene chip Apple (M1, M2, M3, M4) o `DeepDex-<versión>-x64.dmg` si es Intel. Lo ves en  → Acerca de este Mac.
 3. Abre el `.dmg` y arrastra DeepDex a Aplicaciones.
 4. La primera vez macOS dirá que no puede verificar al desarrollador (la app no está firmada con una cuenta de Apple). Ábrela una vez, cierra ese aviso y ve a Ajustes del Sistema → Privacidad y seguridad → «Abrir igualmente». Si prefieres Terminal: `xattr -dr com.apple.quarantine /Applications/DeepDex.app`.
@@ -67,4 +65,6 @@ Todo es local: `~/Library/Application Support/deepdex/deepdex-data.json` (XP, ca
 
 Los sprites (649 normales y 649 shiny) y la fuente pixel van dentro de la app, así que funciona sin conexión. Los datos de especies se generan desde PokeAPI en `src/shared/pokedexData.ts`.
 
-Uso personal: los sprites de Pokémon son propiedad de Nintendo/Game Freak; no distribuyas la app.
+## Licencia
+
+El código está bajo licencia MIT (ver [LICENSE](LICENSE)). La licencia cubre solo el código: los sprites, los nombres y el resto de material de Pokémon pertenecen a Nintendo, Game Freak y The Pokémon Company, no se licencian aquí y se incluyen sin ánimo de lucro. DeepDex es un proyecto de fans sin relación con ellos.
